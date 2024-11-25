@@ -23,7 +23,7 @@ class Autoupload_model extends Model
         $upd = array(
             'engine' . $x . '_stat' => $stat
         );
-        $this->db->update('tb_autoupload_engine', $upd);
+        $this->db->update('tb_autoupload_engine', $upd); 
     }
 
     function check_record($basename)
@@ -645,7 +645,7 @@ class Autoupload_model extends Model
         }
     }
 
-    function create_autoupload_log($pinfo, $inserted, $skip, $uploadcode, $dup = "0")
+    function create_autoupload_log($pinfo, $inserted, $dup, $uploadcode, $skip = "0")
     {
         $insert = array(
             'fullpath' => $pinfo['dirname'] . '/' . $pinfo['basename'],
@@ -1660,12 +1660,14 @@ class Autoupload_model extends Model
         ##Load PHPExcel Plugin
         $this->load->library("PHPExcel");
         ##################################
-
+        
         $objReader = PHPExcel_IOFactory::createReader('Excel5');
         $objReader->setReadDataOnly(false);
         $objPHPExcel = $objReader->load($file_path);
-
+        
         $max_column = 100;
+        // debug mra
+        // var_dump($objPHPExcel);die();
         $endRow = $objPHPExcel->getActiveSheet()->getHighestRow();
         $endColumn = $objPHPExcel->getActiveSheet()->getHighestColumn();
         $endColumn = PHPExcel_Cell::columnIndexFromString($endColumn) > $max_column ? $max_column : PHPExcel_Cell::columnIndexFromString($endColumn);
@@ -1792,7 +1794,7 @@ class Autoupload_model extends Model
             'SET autocommit=0',
             'SET GLOBAL sync_binlog=1000',
             'SET GLOBAL innodb_flush_log_at_trx_commit=0',
-            'SET long_query_time = 99999'
+	    'SET long_query_time = 99999'
         );
         foreach ($sqlBag as $sql) {
             $this->db->query($sql);
@@ -1855,7 +1857,7 @@ class Autoupload_model extends Model
             'SET autocommit=1',
             'SET GLOBAL sync_binlog=300',
             'SET GLOBAL innodb_flush_log_at_trx_commit=2',
-            'SET long_query_time = 3'
+	    'SET long_query_time = 3'
         );
         foreach ($sqlBag as $sql) {
             $this->db->query($sql);
@@ -2177,7 +2179,6 @@ class Autoupload_model extends Model
                 $insert['tgl_upload']          = DATE('Y-m-d');
                 $insert['id_campaign']         = $row1['target_campaign'];
                 $insert['uploadcode']          = $uploadcode;
-                $insert['skip_reason']         = $skip_reason;
 
                 ## Data for Verification
                 $insert['bill_statement']      = $row1['field_20'];
@@ -2658,8 +2659,8 @@ class Autoupload_model extends Model
                 ## Mapping Verification
                 $insert_skip['autodebet']           = $row['field_27'];
 
-                //$insert_skip['id_tsm']           = $this->tsm_incharge;
                 ## Default Data
+                //$insert_skip['id_tsm']           = $this->tsm_incharge;
                 $insert_skip['tgl_upload']       = DATE('Y-m-d');
                 $insert_skip['id_campaign']      = $row['target_campaign'];
                 $insert_skip['uploadcode']       = $uploadcode;
@@ -2805,6 +2806,7 @@ class Autoupload_model extends Model
                     $insert['dummy_id']            = $row1['field_70'];
                     $insert['segment2']            = $row1['field_71'];
                     $insert['remarks']             = $row1['field_73'];
+                    $insert['mgm_id']             = $row1['field_74'];
 
                     ## Try to Fix DOB
                     if (substr($insert['dob'], 0, 4) >= date('Y') || $insert['dob'] == '0000-00-00') {
@@ -2903,7 +2905,6 @@ class Autoupload_model extends Model
                     $insert['tgl_upload']          = DATE('Y-m-d');
                     $insert['id_campaign']         = $row1['target_campaign'];
                     $insert['uploadcode']          = $uploadcode;
-                    $insert['skip_reason']         = $skip_reason;
 
                     ## Data for Verification
                     $insert['bill_statement']      = $row1['field_20'];
@@ -3054,7 +3055,6 @@ class Autoupload_model extends Model
                     $insert['tgl_upload']          = DATE('Y-m-d');
                     $insert['id_campaign']         = $row1['target_campaign'];
                     $insert['uploadcode']          = $uploadcode;
-                    $insert['skip_reason']         = $skip_reason;
 
                     ## Data for Verification
                     $insert['bill_statement']      = $row1['field_11'];
@@ -3247,7 +3247,6 @@ class Autoupload_model extends Model
             $insert['tgl_upload']       = DATE('Y-m-d');
             $insert['id_campaign']      = $row['target_campaign'];
             $insert['uploadcode']       = $uploadcode;
-            $insert['skip_reason']       = $skip_reason;
 
             ## Data for Verification
             $insert['bill_statement']      = $row['field_28'];
@@ -3613,7 +3612,6 @@ class Autoupload_model extends Model
             $insert['tgl_upload']       = DATE('Y-m-d');
             $insert['id_campaign']      = $row['target_campaign'];
             $insert['uploadcode']       = $uploadcode;
-            $insert['skip_reason']       = $skip_reason;
 
             ## Data Segment
             $insert['segment1']  = $row['field_28'];
@@ -4035,7 +4033,6 @@ class Autoupload_model extends Model
                 $insert['tgl_upload']          = DATE('Y-m-d');
                 $insert['id_campaign']         = $row1['target_campaign'];
                 $insert['uploadcode']          = $uploadcode;
-                $insert['skip_reason']         = $skip_reason;
 
                 ## Data for Verification
                 $insert['bill_statement']      = $row1['field_28'];
@@ -4335,7 +4332,6 @@ class Autoupload_model extends Model
                 $insert['tgl_upload']          = DATE('Y-m-d');
                 $insert['id_campaign']         = $row1['target_campaign'];
                 $insert['uploadcode']          = $uploadcode;
-                $insert['skip_reason']         = $skip_reason;
 
                 ## Data for Verification
                 $insert['bill_statement']      = $row1['field_20'];
@@ -4471,6 +4467,129 @@ class Autoupload_model extends Model
         return $return;
     }
 
+    ## New Mapping CPLI x COP 
+    function autoupload_cpilxcop($excelData, $period, $main_product, $namcampaign)
+    {
+        // debug mra
+        // var_dump($excelData);die();
+        // var_dump($period);die();
+        // var_dump($main_product);die();
+        // var_dump($namcampaign);die();
+        $enginenumber = 10;
+        $namcampaign = preg_replace('/\s+/', ' ', $namcampaign);
+        $idx = 0;
+        $loop = 0;
+        $insertxsell = 0;
+        $data = array();
+        $res = array();
+        $insertDataXsell = array();
+
+        // echo "<pre>";
+        // print_r($excelData); // buang header;
+        // echo "</pre>";
+        // exit();
+
+        foreach ($excelData as $row) {
+            $totalfield = count($row);
+            $field = 1;
+            foreach ($row as $column) {
+                $data[$idx]['field_' . $field] = $column;
+                $field++;
+            }
+            $idx++;
+        }
+        unset($excelData);
+        unset($data[0]); // buang header;        
+
+        ## Segment Period
+        $period_array = array(
+            '01' => 'JAN',
+            '02' => 'FEB',
+            '03' => 'MAR',
+            '04' => 'APR',
+            '05' => 'MAY',
+            '06' => 'JUN',
+            '07' => 'JUL',
+            '08' => 'AUG',
+            '09' => 'SEP',
+            '10' => 'OCT',
+            '11' => 'NOV',
+            '12' => 'DEC'
+        );
+        $period_day = substr($period, 0, 2);
+        $period_month = substr($period, 2, 2);
+        $period_year = substr($period, 4, 2);
+
+        ## clear preview
+        $this->db->simple_query('TRUNCATE TABLE tb_uploadpreview_xsell');
+
+        foreach ($data as $previewrow) {
+            if ($previewrow['field_1'] != "") {
+                $str = "";
+                $str = $this->db->insert_string('tb_uploadpreview_xsell', $previewrow);
+                array_push($insertDataXsell, $str);
+                $insertxsell++;
+            }
+        }
+        $this->multiple_insert($insertDataXsell, 500);
+
+        ## update target campaign
+        $sql = "
+            UPDATE tb_uploadpreview_xsell
+            SET target_campaign = UPPER('{$namcampaign}')
+        ";
+        $this->db->query($sql);
+
+        ## SELECT all Target Campaign
+        $sql = "SELECT DISTINCT target_campaign as campaign FROM tb_uploadpreview_xsell";
+        $qObj = $this->db->query($sql);
+        $qArr = $qObj->result_array();
+
+        // debug mra
+        // var_dump($qArr);die();
+        foreach ($qArr as $campaigns) {
+            if ($main_product == 'COP') {
+                $data_dbtype = 0; //$data[1]['field_10'];
+                $this->db->where('db_type', $data_dbtype);
+                $id_dbtype = $this->db->get('tb_dbtype')->row_array()['idx'];
+                $this->make_campaignproduct_xsell($namcampaign, $period, '46', $id_dbtype); ## COP
+            } elseif ($main_product == 'CPILXCOP') {
+                // $data_dbtype = 0; //$data[1]['field_10'];
+                // $this->db->where('db_type', $data_dbtype);
+                // $id_dbtype = $this->db->get('tb_dbtype')->row_array()['idx'];
+                // $this->make_campaignproduct_xsell($namcampaign, $period, '57', $id_dbtype); ## CPIL
+                $this->make_campaignproduct_xsell($namcampaign, $period, '57'); ## CPIL
+                // $this->make_campaignproductcpil($campaigns['campaign'], $period, $type);
+            } 
+            // elseif ($main_product == 'PL') {
+            //     $this->make_campaignproduct_xsell($namcampaign, $period, '32'); ## PL
+            // } elseif ($main_product == 'ACS') {
+            //     $this->make_campaignproduct_xsell($namcampaign, $period, '48'); ## ACS
+            // }
+        }
+
+        ## Update target id_campaign
+        $sql = "UPDATE tb_uploadpreview_xsell
+                LEFT JOIN tb_campaign 
+                    ON tb_uploadpreview_xsell.target_campaign = tb_campaign.name
+                SET tb_uploadpreview_xsell.target_campaign = tb_campaign.id_campaign
+        ";
+        $this->db->query($sql);
+
+        if ($main_product) {
+
+            // debug mra
+            // var_dump($main_product);die();
+            $res = $this->mapping_cpilxcop($main_product);
+        } else {
+            $this->upd_enginestatus($enginenumber, '0');
+            die('Engine Mapper is Not Registered');
+        }
+
+        $return = $res;
+        return $return;
+    }
+
     function make_campaignproduct_xsell($campaignname, $period, $main_product = '', $dbtype = '0')
     {
         $period_arr['day'] = substr($period, 0, 2);
@@ -4499,14 +4618,17 @@ class Autoupload_model extends Model
                 'id_user_created' => 1, ## this is administrator / system
                 'campaign_product' => $main_product,
                 'campaign_type' => 1,
-                'multiproduct' => '',
+                'multiproduct' => 1,
                 'bcprefix' => $bcprefix,
                 'qaminimum' => $qaminimum
             );
             $this->db->insert('tb_campaign', $campaignData);
+            // debug roe:
+            // var_dump($campaignData); die();
         }
     }
 
+    // onmra:
     function mapping_xsell($main_product = '')
     {
         $inserted = 0;
@@ -4617,7 +4739,7 @@ class Autoupload_model extends Model
                     $insert['loan2']               = $row['field_25'];
                     $insert['loan3']               = $row['field_26'];
                     $insert['cycle']               = $row['field_14'];
-                    $insert['custom1']             = $row['field_60'] == 'Y' ? 'R-0' : '';
+                    $insert['custom1']             = $row['field_61'] == 'Y' ? 'R-0': '';
 
                     $insert['cif_no']              = $row['field_3'];
                     $insert['cnum']                = $row['field_4'];
@@ -4651,7 +4773,7 @@ class Autoupload_model extends Model
 
                     $xsell['xsell_cardnumber']    = $row['field_15'];
                     $xsell['xsell_cardtype']      = $row['field_13'];
-                    $xsell['xsell_cardowner']     = $row['field_2'];
+                    $xsell['xsell_cardowner']     = substr($row['field_2'], 0, 10);
                     $xsell['xsell_cardsup1']      = ''; //$row1['field_36'];
                     $xsell['xsell_cardsup2']      = ''; //$row1['field_38'];
                     $xsell['xsell_cardsup3']      = ''; //$row1['field_40'];
@@ -4707,7 +4829,7 @@ class Autoupload_model extends Model
                     $insert['loan2']               = $row['field_25'];
                     $insert['loan3']               = $row['field_26'];
                     $insert['cycle']               = $row['field_14'];
-                    $insert['custom1']             = $row['field_60'] == 'Y' ? 'R-0' : '';
+                    $insert['custom1']             = $row['field_61'] == 'Y' ? 'R-0': '';
 
                     $insert['cif_no']              = $row['field_3'];
                     $insert['cnum']                = $row['field_4'];
@@ -5251,8 +5373,6 @@ class Autoupload_model extends Model
                     $insert['tgl_upload']          = DATE('Y-m-d');
                     $insert['id_campaign']         = $row['target_campaign'];
                     $insert['uploadcode']          = $uploadcode;
-                    $insert['skip_reason']         = $skip_reason;
-
 
                     ## Data for Verification
                     $insert['bill_statement']      = $row['field_10'];
@@ -5318,13 +5438,15 @@ class Autoupload_model extends Model
                     $insert['loan2']               = $row['field_40'] ? $row['field_40'] : null;
 
                     $insert['annual_rate']          = $row['field_31']; //onmra:
-                    $insert['jenis_kartu']            = $row['field_12']; ###
+                    // $insert['jenis_kartu']            = $row['field_12']; ###
+                    $insert['jenis_kartu']            = ''; ### jenis kartu cpil selalu null
+                    $insert['expired_data']          = $row['field_26'];
                     // $insert['tenor']                = $row['field_23'] ? $row['field_23'] : null; // ga di pake
 
-                    $insert['status']              = $row['field_36']; ## for COP
-                    $insert['status2']               = $row['field_54']; ## Status CPIL 
+                    $insert['status']               = $row['field_36']; ## for COP
+                    $insert['status2']              = $row['field_54']; ## Status CPIL 
                     $insert['custom1']              = $row['field_53'] == 'Y' ? 'R-0': '';
-                    $insert['datainfo_xsell']              = $row['field_58'];
+                    $insert['datainfo_xsell']       = $row['field_58'];
 
                     $insert['group_loan']           = $row['field_17'];
                     $insert['creditlimit']          = $row['field_15'];
@@ -5359,8 +5481,8 @@ class Autoupload_model extends Model
                     $xsell['id_campaign']         = $row['target_campaign'];
                     $xsell['id_product']          = '57'; ## CPIL
 
-                    $xsell['xsell_cardnumber']    = $row['field_14'];
-                    $xsell['xsell_cardtype']      = $row['field_12'];
+                    $xsell['xsell_cardnumber']    = $row['field_57'];
+                    $xsell['xsell_cardtype']      = $row['field_55'];
                     $xsell['xsell_cardowner']     = substr($row['field_2'], 0, 10); 
                     $xsell['xsell_cardsup1']      = ''; //$row1['field_36'];
                     $xsell['xsell_cardsup2']      = ''; //$row1['field_38'];
@@ -5405,13 +5527,15 @@ class Autoupload_model extends Model
                     $insert['loan2']               = $row['field_40'] ? $row['field_40'] : null;
 
                     $insert['annual_rate']          = $row['field_31']; //onmra:
-                    $insert['jenis_kartu']            = $row['field_12']; ###
+                    // $insert['jenis_kartu']            = $row['field_12']; ###
+                    $insert['jenis_kartu']            = ''; ### jenis kartu cpil selalu null
+                    $insert['expired_data']          = $row['field_26'];
                     // $insert['tenor']                = $row['field_23'] ? $row['field_23'] : null; // ga di pake
 
-                    $insert['status']              = $row['field_36']; ## for COP
-                    $insert['status2']               = $row['field_54']; ## Status CPIL 
+                    $insert['status']               = $row['field_36']; ## for COP
+                    $insert['status2']              = $row['field_54']; ## Status CPIL 
                     $insert['custom1']              = $row['field_53'] == 'Y' ? 'R-0': '';
-                    $insert['datainfo_xsell']              = $row['field_58'];
+                    $insert['datainfo_xsell']       = $row['field_58'];
 
                     $insert['group_loan']           = $row['field_17'];
                     $insert['creditlimit']          = $row['field_15'];
@@ -6123,6 +6247,7 @@ class Autoupload_model extends Model
         }
     }
 
+    // onmra:
     function mapping_cpil($partner)
     {
         $inserted = 0;
@@ -6147,7 +6272,7 @@ class Autoupload_model extends Model
         ## Remove DUPLICATE prospect data 
         $excelDataNoDup = $this->remove_samebasiccard_acs($qArr, 'field_13'); ## Filter Cif number
 
-        foreach ($excelDataNoDup as $row) {
+        foreach ($excelDataNoDup as $row) { //onmra:
             $skip = 0;
             $skip_reason = '';
             $hp1_ori            = $row['field_6'];
@@ -6225,7 +6350,7 @@ class Autoupload_model extends Model
 
                 $insert['datainfo']            = $row['field_29'];
                 $insert['dummy_id']            = $row['field_31'];
-                $insert['custom1']             = $row['field_37'] == 'Y' ? 'R-0' : '';
+                $insert['custom1']             = $row['field_37'] == 'Y' ? 'R-0': '';
 
                 ## Default Data
                 $insert['tgl_upload']       = DATE('Y-m-d');
@@ -6284,7 +6409,7 @@ class Autoupload_model extends Model
 
                 $insert_skip['datainfo']            = $row['field_29'];
                 $insert_skip['dummy_id']            = $row['field_31'];
-                $insert_skip['custom1']             = $row['field_37'] == 'Y' ? 'R-0' : '';
+                $insert_skip['custom1']             = $row['field_37'] == 'Y' ? 'R-0': '';
 
                 ## Default Data
                 $insert_skip['tgl_upload']       = DATE('Y-m-d');
@@ -6402,8 +6527,6 @@ class Autoupload_model extends Model
             $insert['tgl_upload']       = DATE('Y-m-d');
             $insert['id_campaign']      = $row['target_campaign'];
             $insert['uploadcode']       = $uploadcode;
-            $insert['skip_reason']      = $skip_reason;
-
 
             ## Data for Verification
             //$insert['bill_statement']      = $row['field_28'];
@@ -6742,11 +6865,6 @@ class Autoupload_model extends Model
 
                 ## Data Group_Loan
                 // $insert['group_loan']          = $row1['field_34'];
-                ## Default Data
-                $insert['tgl_upload']       = DATE('Y-m-d');
-                $insert['id_campaign']      = $row1['target_campaign'];
-                $insert['uploadcode']       = $uploadcode;
-                $insert['skip_reason']       = $skip_reason;
 
                 $str = "";
                 $str = $this->db->insert_string('tb_prospect_skip', $insert);
@@ -6793,169 +6911,14 @@ class Autoupload_model extends Model
         return $return;
     }
 
-    ############################# PAY AN #############################################################
-    function remove_samebasiccard_pay($excelData)
-    {
-        $idx = 0;
-        $cardBag = array();
-        foreach ($excelData as $excelRow) {
-            $card = $excelRow['field_20'];
-            if (!empty($card)) {
-                $is_samecard = in_array($card, $cardBag, true);
-                if ($is_samecard) {
-                    unset($excelData[$idx]); //remove from array;
-                } else {
-                    array_push($cardBag, $card);
-                }
-            }
-            $idx++;
-        }
-        return array_values($excelData); ## return with reindexed array; 
-    }
-
-    function make_campaignproductpay($campaignname, $period, $type)
-    {
-        $period_arr['day'] = substr($period, 0, 2);
-        $period_arr['month'] = substr($period, 2, 2);
-        $period_arr['year'] = substr($period, 4, 4);
-
-        $qaminimum = '100';
-        $bcprefix = 'A';
-
-        ## Check if campaign available
-        $this->db->where('name', $campaignname);
-        $qObj = $this->db->get('tb_campaign');
-        //echo $qObj->row_array()['id_campaign'];
-
-        if ($type == 'pay') { ## FOP
-            $campaign_product = '62';
-            $campaign_type = '1';
-        } else {
-            $campaign_product = '0'; //DEFAULT
-            $campaign_type = '0'; //DEFAULT
-        }
-
-        $insert_id = '';
-
-        if ($qObj->num_rows() == 0) { ## create new campaign
-            ## make campaign
-            $campaignData = array(
-                'name' => $campaignname,
-                'origin' => $campaignname,
-                'db_type' => 1,
-                'begindate' => DATE('Y-m-d', mktime(0, 0, 0, intval($period_arr['month']), intval($period_arr['day']), intval($period_arr['year']))),
-                'enddate' => DATE('Y-m-d', mktime(0, 0, 0, intval($period_arr['month']), intval($period_arr['day']) + 13, intval($period_arr['year']))),
-                'remark' => 'AutoUploads ' . date('M Y'),
-                'published' => 1,
-                'id_user_created' => 1, ## this is administrator / system
-                'campaign_product' => $campaign_product,
-                'campaign_type' => 1,
-                'bcprefix' => $bcprefix,
-                'qaminimum' => $qaminimum
-            );
-
-            $this->db->insert('tb_campaign', $campaignData);
-            $insert_id = $this->db->insert_id();
-        } else {
-            $insert_id = $qObj->row_array()['id_campaign'];
-        }
-        return $insert_id;
-    }
-
-    function autoupload_byengineproduct_pay($excelData, $period, $engine, $namcampaign)
-    {
-        $enginenumber = 6;
-        $namcampaign = preg_replace('/\s+/', ' ', $namcampaign);
-        $idx = 0;
-        $loop = 0;
-        $data = array();
-        $res = array();
-        foreach ($excelData as $row) {
-            $totalfield = count($row);
-            $field = 1;
-            foreach ($row as $column) {
-                $data[$idx]['field_' . $field] = $column;
-                $field++;
-            }
-            $idx++;
-        }
-
-        unset($excelData);
-        unset($data[0]); // buang header;
-
-        ## Segment Period
-        $period_array = array(
-            '01' => 'JAN',
-            '02' => 'FEB',
-            '03' => 'MAR',
-            '04' => 'APR',
-            '05' => 'MAY',
-            '06' => 'JUN',
-            '07' => 'JUL',
-            '08' => 'AUG',
-            '09' => 'SEP',
-            '10' => 'OCT',
-            '11' => 'NOV',
-            '12' => 'DEC'
-        );
-        $period_day = substr($period, 0, 2);
-        $period_month = $period_array[substr($period, 2, 2)];
-        $period_year = substr($period, 4, 4);
-
-        ## clear preview
-        $this->db->simple_query('TRUNCATE TABLE tb_uploadpreview_payanithing');
-
-        foreach ($data as $previewrow) {
-            if ($previewrow['field_1'] != "") {
-                $this->db->insert('tb_uploadpreview_payanithing', $previewrow);
-            }
-        }
-
-        ## update target campaign
-        $sql = "
-            UPDATE tb_uploadpreview_payanithing
-            SET target_campaign = CONCAT(UPPER('{$namcampaign}'), ' ')
-        ";
-        $this->db->simple_query($sql);
-        ## SELECT all Target Campaign
-        $sql = "
-            SELECT target_campaign as campaign FROM tb_uploadpreview_payanithing limit 1
-        ";
-        $qObj = $this->db->query($sql);
-        $qArr = $qObj->result_array();
-
-        foreach ($qArr as $campaigns) {
-            $id_campaign = $this->make_campaignproductpay($campaigns['campaign'], $period,  $type = 'pay');
-        }
-        // var_dump($id_campaign);
-        ## Update target id_campaign
-        $sql = "UPDATE tb_uploadpreview_payanithing SET target_campaign = {$id_campaign}";
-        // LEFT JOIN tb_campaign ON tb_uploadpreview_payanithing.target_campaign = tb_campaign.name
-        //  SET tb_uploadpreview_payanithing.target_campaign = tb_campaign.id_campaign
-        // ";
-
-        $this->db->simple_query($sql);
-
-        ## Start mapping to real table
-        // $inserted = $this->mapping_cc();
-        switch ($engine['engine']) {
-            case 'pay':
-                $res = $this->mapping_pay($engine['partner']);
-                break;
-            default:
-                $this->upd_enginestatus($enginenumber, '0');
-                die('Engine Mapper is Not Registered');
-                break;
-        }
-        $return = $res;
-        return $return;
-    }
-
-    function mapping_pay($partner)
+    // maping cpil x cop
+    function mapping_cpilxcop($main_product = '')
     {
         $inserted = 0;
+        $inserted1 = 0;
+        $inserted_supp = 0;
         $dup = 0;
-        $totalSkip = 0;
+        $skip = 0;
         $skip_reason = '';
         $return = array();
         $uploadcode = uniqid();
@@ -6963,30 +6926,34 @@ class Autoupload_model extends Model
 
         ## Prepare Data
         $insertData = array();
+        $insertData_dup = array();
         $insertData_trx = array();
+        $insertData_sup = array();
         $insertData_skip = array();
 
         ## Get preview data;
-        $qObj = $this->db->get('tb_uploadpreview_payanithing');
+        $qObj = $this->db->get('tb_uploadpreview_xsell');
         $qArr = $qObj->result_array();
 
+        // command mra: unique excel culumn
+        if ($main_product == 'COP') {
+            $field_dummyid = '49';
+        } elseif ($main_product == 'CPIL') {
+            // $field_dummyid = '3';
+        }
+
         ## Remove double prospect data ( for transaction on masterdata )
-        $excelDataNoDup = $this->remove_samebasiccard_pay($qArr);
+        $excelDataNoDup = $this->remove_samebasiccard_xsell($qArr, $field_dummyid);
 
-        foreach ($excelDataNoDup as $row1) {
+        ### MAIN DATA WITH DATA XSELL & SKIP
+        $g = 0;
+        foreach ($excelDataNoDup as $row) {
+            $skip = 0;
+            $skip_reason = '';
 
-            $updatetrx = $this->db->query("SELECT cif_no,id_campaign,is_agree FROM tb_prospect WHERE cif_no='" . $row1['field_1'] . "' AND id_campaign='" . $row1['target_campaign'] . "'")->row();
-
-            if (!$updatetrx || $updatetrx->is_agree == '1') {
-                $insert = array();
-                $skip = 0;
-                $skip_reason = '';
-                $hp1_ori            = $row1['field_4'];
+            if ($main_product == 'COP') : ## xsell fop & sup
+                $hp1_ori            = $row['field_8'];
                 $hp1                = $this->phone_sensor->recognize($hp1_ori);
-
-                $type_kartu         = $row1['field_15'];
-                $card_type          = str_replace(" ; ", ',', $type_kartu);
-                $type_kartua        = explode(',', $card_type);
 
                 ## Check if blacklisted phone_number
                 if ($hp1 != '') {
@@ -7000,38 +6967,625 @@ class Autoupload_model extends Model
                     } //this data will skiped
                 }
 
+                // Update Enddate Campaign
+                if ($g < 1) {
+                    $expiredcamp = $qArr[0]['field_41'];
+                    $camp_target = $qArr[0]['target_campaign'];
+                    $expiredcamp2 = $this->convertExcelToNormalDateTRP($expiredcamp);
+                    $satu = $this->update_campaign($expiredcamp2, $camp_target);
+                    $this->db->query($satu);
+                }
+
+                // End Update Campaign Enddate
+
+                $insert = array();
                 if ($skip == 0) {
                     ## Main Data
-                    $insert['cif_no']              = $row1['field_1'];
-                    $insert['card_number_basic']   = $row1['field_2'];
-                    $insert['fullname']            = $row1['field_3'];
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_41']);
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_41'], '/');
+                    // }
 
                     ## Phone Number
-                    $insert['hp1_ori']             = $row1['field_4'];
+                    $insert['home_phone1_ori']     = $row['field_6'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_7'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_8'];
                     $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
 
-                    $insert['loan1']               = $row1['field_5'];
+                    $insert['gender']              = $row['field_5'];
+                    $insert['code_tele']           = $row['field_12'];
+                    $insert['status']              = $row['field_18']; ## for COP
+                    $insert['status2']             = $row['field_20']; ## for FOP
+                    $insert['card_number_basic']   = $row['field_15'];
+                    $insert['card_type']           = $row['field_13'];
+                    $insert['creditlimit']         = $row['field_22'];
+                    $insert['available_credit']    = $row['field_22'];
 
-                    $insert['segment3']            = $row1['field_13'];
+                    ## segment
+                    $insert['segment1']            = $row['field_47'];
+                    $insert['segment2']            = $row['field_42'];
+                    $insert['segment3']            = $row['field_48'];
+
+                    ## Data COP
+                    // $insert['max_loan']            = $row['field_23'];
+                    // $insert['loan1']               = $row['field_24'];
+                    // $insert['loan2']               = $row['field_25'];
+                    // $insert['loan3']               = $row['field_26'];
+                    $insert['cycle']               = $row['field_14'];
+                    $insert['max_loan']            = $row['field_37'];
+                    $insert['loan1']               = $row['field_38'];
+                    $insert['loan2']               = $row['field_39'];
+                    $insert['available_credit']    = $row['field_36'];
+                    $insert['creditlimit']         = $row['field_36'];
+
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['cnum']                = $row['field_4'];
+
+                    ## Tunggu Info
+                    // $insert['rdf']                 = $row['field_47'];
+
+                    $insert['datainfo']            = $row['field_50'];
+                    $insert['dummy_id']            = $row['field_49'];
+                    $insert['group_loan']          = $row['field_29'];
 
                     ## Data for Verification
-                    $insert['card_type']           = $type_kartua[0];
-                    $insert['segment1']            = $type_kartua[1];
-                    $insert['segment2']            = $type_kartua[2];
+                    $insert['bill_statement']      = $row['field_9'];
+                    $insert['autodebet']           = $row['field_11'];
 
-                    // var_dump($insert['card_type']);
-                    // echo "<br>";
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect', $insert);
+                    array_push($insertData, $str);
+                    $inserted++;
+
+                    ## XSEL DATA
+                    $xsell['cif_no']              = $row['field_3'];
+                    $xsell['id_campaign']         = $row['target_campaign'];
+                    $xsell['id_product']          = 46; ## COP
+
+                    $xsell['xsell_cardnumber']    = $row['field_15'];
+                    $xsell['xsell_cardtype']      = $row['field_13'];
+                    $xsell['xsell_cardowner']     = $row['field_2'];
+                    $xsell['xsell_cardsup1']      = ''; //$row1['field_36'];
+                    $xsell['xsell_cardsup2']      = ''; //$row1['field_38'];
+                    $xsell['xsell_cardsup3']      = ''; //$row1['field_40'];
+
+                    if ($row['field_44'] != '') {
+                        $tmp_imp = explode(';', $row['field_44']);
+                        $xsell['xsell_cardxsell'] = json_encode($tmp_imp);
+                    }
+
+                    $xsell['uploadcode']          = $uploadcode;
+                    $xsell['tgl_upload']          = DATE('Y-m-d');
+
+                    $str_xsell = "";
+                    $str_xsell = $this->db->insert_string('tb_xsell', $xsell);
+
+                    array_push($insertData_sup, $str_xsell);
+                    $inserted_supp++;
+                } else {
+                    ## Main Data
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_41']);
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_41'], '/');
+                    // }
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_6'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_7'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_8'];
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
+                    $insert['gender']              = $row['field_5'];
+                    $insert['code_tele']           = $row['field_12'];
+                    $insert['status']              = $row['field_18']; ## for COP
+                    $insert['status2']             = $row['field_20']; ## for FOP
+                    $insert['card_number_basic']   = $row['field_15'];
+                    $insert['card_type']           = $row['field_13'];
+                    $insert['creditlimit']         = $row['field_22'];
+                    $insert['available_credit']    = $row['field_22'];
+
+                    ## segment
+                    $insert['segment1']            = $row['field_47'];
+                    $insert['segment2']            = $row['field_14'];
+                    $insert['segment3']            = $row['field_48'];
+
+                    ## Data COP
+                    $insert['max_loan']            = $row['field_23'];
+                    $insert['loan1']               = $row['field_24'];
+                    $insert['loan2']               = $row['field_25'];
+                    $insert['loan3']               = $row['field_26'];
+                    $insert['cycle']               = $row['field_14'];
+                    $insert['max_loan']            = $row['field_37'];
+                    $insert['loan1']               = $row['field_38'];
+                    $insert['loan2']               = $row['field_39'];
+                    $insert['available_credit']    = $row['field_36'];
+                    $insert['creditlimit']         = $row['field_36'];
+
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['cnum']                = $row['field_4'];
+
+                    ## Tunggu Info
+                    // $insert['rdf']                 = $row['field_47'];
+
+                    $insert['datainfo']            = $row['field_50'];
+                    $insert['dummy_id']            = $row['field_49'];
+                    $insert['group_loan']          = $row['field_29'];
 
                     ## Data for Verification
-                    $insert['bill_statement']      = $row1['field_16'];
-                    $insert['autodebet']           = $row1['field_17'];
+                    $insert['bill_statement']      = $row['field_9'];
+                    $insert['autodebet']           = $row['field_11'];
 
-                    $insert['dummy_id']            = $row1['field_18'];
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect_skip', $insert);
+                    array_push($insertData_skip, $str);
+                    $inserted1++;
+                }
+            elseif ($main_product == 'CPIL') : ## main product cpil
+                $hp1_ori            = $row['field_8'];
+                // debug mra
+                // var_dump($row['field_2']);die();
+                $hp1                = $this->phone_sensor->recognize($hp1_ori);
+
+                ## Check if blacklisted phone_number
+                if ($hp1 != '') {
+                    $this->db->where('type', 'phonenumber');
+                    $this->db->where('value', $this->db->escape_str($hp1));
+                    $this->db->where('is_active', 1);
+                    $qObj = $this->db->get('tb_blacklist');
+                    if ($qObj->num_rows() > 0) {
+                        $skip = 1;
+                        $skip_reason = 'Blacklisted PhoneNumber: ' . $hp1;
+                    } //this data will skiped
+                }
+
+                // Update Enddate Campaign
+                // if ($g < 1) {
+                if (false) { // format date excel invalid (45458) 
+                    $expiredcamp = $qArr[0]['field_26'];
+                    // debig mra:
+                    // var_dump($qArr[0]); die();
+                    $camp_target = $qArr[0]['target_campaign'];
+                    $expiredcamp2 = $this->convertExcelToNormalDateTRP($expiredcamp);
+                    // var_dump($expiredcamp2); die();
+                    $satu = $this->update_campaign($expiredcamp2, $camp_target);
+                    $this->db->query($satu);
+                }
+
+                // End Update Campaign Enddate
+
+                $insert = array();
+                if ($skip == 0) {
+                    ## Main Data
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_40']);
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_40'], '/');
+                    // }
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_6'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_7'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_8'];
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
+                    $insert['gender']              = $row['field_5'];
+                    // $insert['code_tele']           = $row['field_12']; ###
+                    $insert['status']              = $row['field_35']; ## for COP
+                    //$insert['status2']             = $row['field_17']; 
+                    // $insert['status2']             = $row['field_62']; ###
+                    $insert['card_number_basic']   = $row['field_14'];
+                    $insert['card_type']           = $row['field_12']; ###
+                    $insert['creditlimit']         = $row['field_16']; ###
+                    // $insert['available_credit']    = $row['field_19']; ###
+
+                    ## Segment
+                    $insert['segment1']            = $row['field_27'];
+                    // $insert['segment2']            = $row['field_21']; ##segment lama
+                    // $insert['segment2']            = $row['field_53']; ###
+                    // $insert['segment3']            = $row['field_50']; ###
+
+                    ## Data FOP
+                    // $insert['max_loan']            = $row['field_30']; ###
+                    // $insert['loan1']               = $row['field_31']; ###
+                    // $insert['loan2']               = $row['field_32']; ###
+                    // $insert['loan3']               = $row['field_33']; ###
+                    // $insert['cycle']               = $row['field_14']; ###
+
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['cnum']                = $row['field_4'];
+
+                    ## Tunggu Info
+                    // $insert['rdf']                 = $row['field_47'];
+
+                    // $insert['datainfo']            = $row['field_52'];
+                    // $insert['dummy_id']            = $row['field_22'];
+                    $insert['group_loan']          = $row['field_17'];
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_9'];
+                    $insert['autodebet']           = $row['field_11'];
+
+                    // $insert['expired_data']           = $row['field_60']; ###
+                    //$insert['expired_data']           = $row['field_60'];
+                    // addtional 
+                    $insert['cycle']      = $row['field_13'];
+                    $insert['visa_credit_limit']      = $row['field_15'];
+                    $insert['tenor']      = $row['field_23'];
+                    $insert['annual_rate']      = $row['field_31'];
+
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect', $insert);
+                    array_push($insertData, $str);
+                    $inserted++;
+
+                    ## XSEL DATA
+                    $xsell['cif_no']              = $row['field_3'];
+                    $xsell['id_campaign']         = $row['target_campaign'];
+                    $xsell['id_product']          = 44; ## FOP
+
+                    $xsell['xsell_cardnumber']    = $row['field_20'];
+                    $xsell['xsell_cardtype']      = $row['field_13'];
+                    $xsell['xsell_cardowner']     = $row['field_2'];
+                    $xsell['xsell_cardsup1']      = ''; //$row1['field_36'];
+                    $xsell['xsell_cardsup2']      = ''; //$row1['field_38'];
+                    $xsell['xsell_cardsup3']      = ''; //$row1['field_40'];
+
+                    if ($row['field_46'] != '') {
+                        $tmp_imp = explode(';', $row['field_46']);
+                        $xsell['xsell_cardxsell'] = json_encode($tmp_imp);
+                    }
+
+                    $xsell['uploadcode']          = $uploadcode;
+                    $xsell['tgl_upload']          = DATE('Y-m-d');
+
+                    $str_xsell = "";
+                    $str_xsell = $this->db->insert_string('tb_xsell', $xsell);
+
+                    array_push($insertData_sup, $str_xsell);
+                    $inserted_supp++;
+                } else {
+                    ## Dup Data
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_40']);
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_40'], '/');
+                    // }
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_6'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_7'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_8'];
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
+                    $insert['gender']              = $row['field_5'];
+                    $insert['code_tele']           = $row['field_12'];
+                    $insert['status']              = $row['field_15']; ## for COP
+                    //$insert['status2']             = $row['field_17']; ## for FOP
+                    $insert['status2']             = $row['field_62']; ## for FOP
+                    $insert['card_number_basic']   = $row['field_20'];
+                    $insert['card_type']           = $row['field_13'];
+                    $insert['creditlimit']         = $row['field_19'];
+                    $insert['available_credit']    = $row['field_19'];
+
+                    ## Segment
+                    $insert['segment1']            = $row['field_49'];
+                    $insert['segment2']            = $row['field_14'];
+                    $insert['segment3']            = $row['field_50'];
+
+                    ## Data COP
+                    $insert['max_loan']            = $row['field_30'];
+                    $insert['loan1']               = $row['field_31'];
+                    $insert['loan2']               = $row['field_32'];
+                    $insert['loan3']               = $row['field_33'];
+                    $insert['cycle']               = $row['field_14'];
+
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['cnum']                = $row['field_4'];
+
+                    ## Tunggu Info
+                    // $insert['rdf']                 = $row['field_47'];
+
+                    $insert['datainfo']            = $row['field_52'];
+                    $insert['dummy_id']            = $row['field_51'];
+                    $insert['group_loan']          = $row['field_36'];
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_9'];
+                    $insert['autodebet']           = $row['field_11'];
+
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect_skip', $insert);
+                    array_push($insertData_skip, $str);
+                    $inserted1++;
+                }
+            elseif ($main_product == 'PL') : ## xsell fop & sup
+                $hp1_ori            = $row['field_28'];
+                $hp1                = $this->phone_sensor->recognize($hp1_ori);
+
+                ## Check if blacklisted phone_number
+                if ($hp1 != '') {
+                    $this->db->where('type', 'phonenumber');
+                    $this->db->where('value', $this->db->escape_str($hp1));
+                    $this->db->where('is_active', 1);
+                    $qObj = $this->db->get('tb_blacklist');
+                    if ($qObj->num_rows() > 0) {
+                        $skip = 1;
+                        $skip_reason = 'Blacklisted PhoneNumber: ' . $hp1;
+                    } //this data will skiped
+                }
+
+                $insert = array();
+                if ($skip == 0) {
+                    ## Main Data
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_40']);
+
+                    // ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_40'], '/');
+                    // }
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_26'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_27'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_28'];
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
+                    // $insert['gender']              = $row['field_12'];
+                    $insert['code_tele']           = $row['field_69'];
+                    $insert['status']              = $row['field_54']; ## for Main product PL
+                    $insert['status2']             = $row['field_55']; ## for FOP
+                    $insert['card_number_basic']   = $row['field_4'];
+                    $insert['card_type']           = $row['field_6'];
+                    $insert['creditlimit']         = $row['field_8'];
+                    $insert['available_credit']    = $row['field_8'];
+
+                    ## Segment
+                    $insert['segment1']            = $row['field_54'];
+                    $insert['segment2']            = $row['field_74'];
+                    $insert['segment3']            = $row['field_81'];
+
+                    ## Plafon
+                    $insert['plafon12']            = $row['field_43'];
+                    $insert['plafon24']            = $row['field_45'];
+                    $insert['plafon36']            = $row['field_47'];
+
+                    $insert['cycle']               = $row['field_29'];
+                    $insert['cif_no']              = $row['field_42'];
+                    $insert['cnum']                = $row['field_3'];
+                    // $insert['home_address1']       = $row['field_15'];
+                    // $insert['home_address2']       = $row['field_16'];
+                    // $insert['home_city']           = $row['field_17'];
+                    // $insert['home_zipcode']        = $row['field_18'];
+
+                    $insert['datainfo']            = $row['field_80'];
+                    $insert['dummy_id']            = $row['field_82'];
+                    // $insert['group_loan']          = $row['field_35']; 
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_52'];
+                    $insert['autodebet']           = $row['field_53'];
+
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect', $insert);
+                    array_push($insertData, $str);
+                    $inserted++;
+
+                    ## XSEL DATA
+                    $xsell['cif_no']              = $row['field_42'];
+                    $xsell['id_campaign']         = $row['target_campaign'];
+                    $xsell['id_product']          = 32; ## PL
+
+                    $xsell['xsell_cardnumber']    = $row['field_4'];
+                    $xsell['xsell_cardtype']      = $row['field_6'];
+                    $xsell['xsell_cardowner']     = $row['field_2'];
+                    $xsell['xsell_cardsup1']      = ''; //$row1['field_36'];
+                    $xsell['xsell_cardsup2']      = ''; //$row1['field_38'];
+                    $xsell['xsell_cardsup3']      = ''; //$row1['field_40'];
+
+                    if ($row['field_75'] != '') {
+                        $tmp_imp = explode(';', $row['field_75']);
+                        $xsell['xsell_cardxsell'] = json_encode($tmp_imp);
+                    }
+
+                    $xsell['uploadcode']          = $uploadcode;
+                    $xsell['tgl_upload']          = DATE('Y-m-d');
+
+                    $str_xsell = "";
+                    $str_xsell = $this->db->insert_string('tb_xsell', $xsell);
+
+                    array_push($insertData_sup, $str_xsell);
+                    $inserted_supp++;
+                } else {
+                    ## Main Data
+                    $insert['fullname']            = $row['field_2'];
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_40']);
+
+                    // ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_40'], '/');
+                    // }
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_26'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1_ori']   = $row['field_27'];
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1_ori']             = $row['field_28'];
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
+                    // $insert['gender']              = $row['field_12'];
+                    $insert['code_tele']           = $row['field_69'];
+                    $insert['status']              = $row['field_54']; ## for Main product PL
+                    $insert['status2']             = $row['field_55']; ## for FOP
+                    $insert['card_number_basic']   = $row['field_4'];
+                    $insert['card_type']           = $row['field_6'];
+                    $insert['creditlimit']         = $row['field_8'];
+                    $insert['available_credit']    = $row['field_8'];
+
+                    ## Segment
+                    $insert['segment1']            = $row['field_54'];
+                    $insert['segment2']            = $row['field_74'];
+                    $insert['segment3']            = $row['field_81'];
+
+                    ## Plafon
+                    $insert['plafon12']            = $row['field_43'];
+                    $insert['plafon24']            = $row['field_45'];
+                    $insert['plafon36']            = $row['field_47'];
+
+                    $insert['cycle']               = $row['field_29'];
+                    $insert['cif_no']              = $row['field_42'];
+                    $insert['cnum']                = $row['field_3'];
+                    // $insert['home_address1']       = $row['field_15'];
+                    // $insert['home_address2']       = $row['field_16'];
+                    // $insert['home_city']           = $row['field_17'];
+                    // $insert['home_zipcode']        = $row['field_18'];
+
+                    $insert['datainfo']            = $row['field_80'];
+                    $insert['dummy_id']            = $row['field_82'];
+                    // $insert['group_loan']          = $row['field_35']; 
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_52'];
+                    $insert['autodebet']           = $row['field_53'];
+
+                    ## Default Data
+                    $insert['tgl_upload']       = DATE('Y-m-d');
+                    $insert['id_campaign']      = $row['target_campaign'];
+                    $insert['uploadcode']       = $uploadcode;
+                    $insert['skip_reason']      = $skip_reason;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_prospect_skip', $insert);
+                    array_push($insertData_skip, $str);
+                    $inserted1++;
+                }
+
+            elseif ($main_product == 'ACS') : ## xsell ACS 
+                $hp1_ori            = $row['field_9'];
+                $hp1                = $this->phone_sensor->recognize($hp1_ori);
+
+                ## Check if blacklisted phone_number
+                if ($hp1 != '') {
+                    $this->db->where('type', 'phonenumber');
+                    $this->db->where('value', $this->db->escape_str($hp1));
+                    $this->db->where('is_active', 1);
+                    $qObj = $this->db->get('tb_blacklist');
+                    if ($qObj->num_rows() > 0) {
+                        $skip = 1;
+                        $skip_reason = 'Blacklisted PhoneNumber: ' . $hp1;
+                    } //this data will skiped
+                }
+
+                // Update Enddate Campaign
+                if ($g < 1) {
+                    $expiredcamp = $qArr[0]['field_64'];
+                    $camp_target = $qArr[0]['target_campaign'];
+                    $expiredcamp2 = $this->convertExcelToNormalDateTRP($expiredcamp);
+                    $satu = $this->update_campaign($expiredcamp2, $camp_target);
+                    $this->db->query($satu);
+                }
+                // End Update Campaign Enddate
+
+                if ($skip == 0) {
+                    ## Main Data ACS & ACT
+                    $insert['fullname']            = $row['field_2'];
+                    $insert['social_number']       = $row['field_5'];
+                    // $insert['pob']                 = $row['field_4'];  
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_5']);
+                    // $insert['email']               = $row['field_19'];
+                    $insert['datainfo']            = $row['field_45'];
+                    $insert['card_number_basic']   = $row['field_13'];
+                    $insert['card_type']           = $row['field_14'];
+                    // $insert['card_exp']            = $row['field_31'];
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['gender']              = $row['field_6'];
+                    $insert['cnum']                = $row['field_4'];
+                    $insert['dummy_id']            = $row['field_44'];
+                    $insert['segment1']            = $row['field_42'];
+                    $insert['segment2']            = $row['field_22'];
+                    $insert['segment3']            = $row['field_43'];
+                    $insert['cycle']               = $row['field_27'];
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_5'], '/');
+                    // }
+
+                    ## Data COP
+                    $insert['status']              = $row['field_26'];
+                    $insert['creditlimit']         = $row['field_30'];
+                    $insert['max_loan']            = $row['field_31'];
+                    $insert['loan1']               = $row['field_32'];
+                    $insert['loan2']               = $row['field_33'];
+                    $insert['loan3']               = $row['field_34'];
+
+                    ## Phone Number
+                    $insert['home_phone1_ori']     = $row['field_7'];
+                    $insert['office_phone1_ori']   = $row['field_8'];
+                    $insert['hp1_ori']             = $row['field_9'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
+                    $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
+
                     ## Default Data
                     $insert['tgl_upload']          = DATE('Y-m-d');
-                    $insert['id_campaign']         = $row1['target_campaign'];
+                    $insert['id_campaign']         = $row['target_campaign'];
                     $insert['uploadcode']          = $uploadcode;
-                    $insert['skip_reason']         = $skip_reason;
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_10'];
+                    $insert['autodebet']           = $row['field_11'];
 
                     $str = "";
                     $str = $this->db->insert_string('tb_prospect', $insert);
@@ -7039,84 +7593,190 @@ class Autoupload_model extends Model
                     array_push($insertData, $str);
                     $inserted++;
 
-                    //var_dump($insertData);echo "<br>";
+                    ## XSEL DATA
+                    $acs['cif_no']              = $row['field_3'];
+                    $acs['id_campaign']         = $row['target_campaign'];
+                    $acs['id_product']          = '48';
+                    $acs['xsell_cardnumber']    = $row['field_13'];
+                    $acs['xsell_cardtype']      = $row['field_14'];
+                    $acs['xsell_cardowner']     = $row['field_2'];
 
+                    $acs['xsell_offer1']        = $row['field_16'];
+                    $acs['xsell_offer2']        = $row['field_17'];
+
+                    // $acs['xsell_cardsup1']      = $row['field_57'];
+                    // $acs['xsell_cardsup2']      = $row['field_58'];
+                    // $acs['xsell_cardsup3']      = $row['field_59'];
+                    // $acs['xsell_cardsup4']      = $row['field_60'];
+
+                    // $acs['xsell_cardsupname1']  = $row['field_53'];
+                    // $acs['xsell_cardsupname2']  = $row['field_54'];
+                    // $acs['xsell_cardsupname3']  = $row['field_55'];
+                    // $acs['xsell_cardsupname4']  = $row['field_56'];
+
+                    if ($row['field_40'] != '') {
+                        $tmp_imp = explode(';', $row['field_40']);
+                        $acs['xsell_cardxsell'] = json_encode($tmp_imp);
+                    }
+
+                    $acs['uploadcode']          = $uploadcode;
+
+                    $str_xsell = "";
+                    $str_xsell = $this->db->insert_string('tb_xsell', $acs);
+                    // var_dump($str);
+                    array_push($insertData_sup, $str_xsell);
                 } else {
-                    ## Main Data
-                    $insert['cif_no']              = $row1['field_1'];
-                    $insert['card_number_basic']   = $row1['field_2'];
-                    $insert['fullname']            = $row1['field_3'];
+                    ## Main Data ACS & ACT
+                    $insert['fullname']            = $row['field_2'];
+                    $insert['social_number']       = $row['field_5'];
+                    // $insert['pob']                 = $row['field_4'];  
+                    // $insert['dob']                 = $this->convertExcelToNormalDateTRP($row['field_5']);
+                    // $insert['email']               = $row['field_19'];
+                    $insert['datainfo']            = $row['field_45'];
+                    $insert['card_number_basic']   = $row['field_13'];
+                    $insert['card_type']           = $row['field_14'];
+                    // $insert['card_exp']            = $row['field_31'];
+                    $insert['cif_no']              = $row['field_3'];
+                    $insert['gender']              = $row['field_6'];
+                    $insert['cnum']                = $row['field_4'];
+                    $insert['dummy_id']            = $row['field_44'];
+                    $insert['segment1']            = $row['field_42'];
+                    $insert['segment2']            = $row['field_22'];
+                    $insert['segment3']            = $row['field_43'];
+                    $insert['cycle']               = $row['field_27'];
+
+                    ## Try to Fix DOB
+                    // if( substr($insert['dob'],0,4) >= date('Y') || $insert['dob'] == '0000-00-00' ){
+                    //     $insert['dob']             =  $this->convertTextDatefop($row['field_5'], '/');
+                    // }
+
+                    ## Data COP
+                    $insert['status']              = $row['field_26'];
+                    $insert['creditlimit']         = $row['field_30'];
+                    $insert['max_loan']            = $row['field_31'];
+                    $insert['loan1']               = $row['field_32'];
+                    $insert['loan2']               = $row['field_33'];
+                    $insert['loan3']               = $row['field_34'];
 
                     ## Phone Number
-                    $insert['hp1_ori']             = $row1['field_4'];
+                    $insert['home_phone1_ori']     = $row['field_7'];
+                    $insert['office_phone1_ori']   = $row['field_8'];
+                    $insert['hp1_ori']             = $row['field_9'];
+                    $insert['home_phone1']         = $this->phone_sensor->recognize($insert['home_phone1_ori']);
+                    $insert['office_phone1']       = $this->phone_sensor->recognize($insert['office_phone1_ori']);
                     $insert['hp1']                 = $this->phone_sensor->recognize($insert['hp1_ori']);
-
-                    $insert['loan1']               = $row1['field_5'];
-
-                    $insert['segment3']            = $row1['field_13'];
-
-                    ## Data for Verification
-                    $insert['card_type']           = $type_kartua[0];
-                    $insert['segment1']            = $type_kartua[1];
-                    $insert['segment2']            = $type_kartua[2];
-
-                    // var_dump($insert['card_type']);
-                    // echo "<br>";
-
-                    ## Data for Verification
-                    $insert['bill_statement']      = $row1['field_16'];
-                    $insert['autodebet']           = $row1['field_17'];
-
-                    $insert['dummy_id']            = $row1['field_18'];
 
                     ## Default Data
                     $insert['tgl_upload']          = DATE('Y-m-d');
-                    $insert['id_campaign']         = $row1['target_campaign'];
+                    $insert['id_campaign']         = $row['target_campaign'];
                     $insert['uploadcode']          = $uploadcode;
-                    $insert['skip_reason']         = $skip_reason;
+
+                    ## Data for Verification
+                    $insert['bill_statement']      = $row['field_10'];
+                    $insert['autodebet']           = $row['field_11'];
 
                     $str = "";
                     $str = $this->db->insert_string('tb_prospect_skip', $insert);
 
                     array_push($insertData_skip, $str);
-                    $totalSkip++;
+                    $inserted1++;
                 }
-            }
-            //  $inserted++;
+            endif;
+            $g++;
         } ## End foreach
 
+        ### TRANSAKSI FOP
         $trxInsert = 0; ## declare jumlah insert trx 
-        foreach ($qArr as $row) {
-            $pay = array();
-            ##FOP Data
-            $pay['cif_no']              = $row['field_1'];
-            $pay['card_basic']          = $row['field_2'];
-            $pay['id_campaign']         = $row['target_campaign'];
-            $pay['trx_max_persen_limit'] = $row['field_5'];
-            $pay['trx_description1']    = $row['field_6'];
-            $pay['trx_card']            = $row['field_7'];
-            $pay['trx_description3']    = $row['field_8'];
-            $pay['trx_amount']          = $row['field_9'];
-            $pay['trx_admin_fee']       = $row['field_10'];
-            $pay['trx_description']     = $row['field_11'];
-            $pay['trx_description2']    = $row['field_12'];
-            $pay['trx_cardtype']        = $row['field_16'];
-            $pay['uploadcode']          = $uploadcode;
+        if ($main_product == 'COP') : ## COP
+            foreach ($qArr as $row) {
+                $fop = array();
+                if ($row['field_51']) ## Jika tipe kartu true 
+                {
+                    ##FOP Data
+                    $fop['cif_no']              = $row['field_3'];
+                    $fop['cnum']                = $row['field_4'];
+                    $fop['id_campaign']         = $row['target_campaign'];
+                    $fop['card_basic']          = $row['field_15'];
+                    $fop['trx_card']            = $row['field_17'];
+                    $fop['trx_cardtype']        = $row['field_51'];
+                    $fop['trx_reff']            = $row['field_32'];
+                    $fop['trx_date']            = $this->convertExcelToNormalDate($row['field_35']);
+                    $fop['trx_amount']          = $row['field_33'];
+                    $fop['trx_description']     = $row['field_34'];
+                    $fop['trx_countcard']       = $row['field_46'];
+                    $fop['uploadcode']          = $uploadcode;
 
-            $str = "";
-            $str = $this->db->insert_string('tb_trxdetail', $pay);
+                    $str = "";
+                    $str = $this->db->insert_string('tb_trxdetail', $fop);
+                    array_push($insertData_trx, $str);
+                    $trxInsert++;
+                }
+            } ## End foreach
+        elseif ($main_product == 'FOP') : ## FOP
+            foreach ($qArr as $row) {
+                $fop = array();
+                if ($row['field_53']) ## Jika tipe kartu true 
+                {
+                    ##FOP Data
+                    $fop['cif_no']              = $row['field_3'];
+                    $fop['cnum']                = $row['field_4'];
+                    $fop['id_campaign']         = $row['target_campaign'];
+                    $fop['card_basic']          = $row['field_20'];
+                    $fop['trx_card']            = $row['field_22'];
+                    // $fop['trx_cardtype']        = $row['field_53']; ##maping lama
+                    $fop['trx_cardtype']        = $row['field_13']; ##maping baru
+                    $fop['trx_reff']            = $row['field_23'];
+                    $fop['trx_date']            = $this->convertExcelToNormalDate($row['field_27']);
+                    $fop['trx_amount']          = $row['field_24'];
+                    $fop['trx_description']     = $row['field_26'];
+                    $fop['trx_countcard']       = $row['field_48'];
+                    $fop['uploadcode']          = $uploadcode;
 
-            array_push($insertData_trx, $str);
-            $trxInsert++;
-        } ## End foreach
+                    $str = "";
+                    $str = $this->db->insert_string('tb_trxdetail', $fop);
+                    array_push($insertData_trx, $str);
+                    $trxInsert++;
+                }
+            } ## End foreach
+        elseif ($main_product == 'PL') : ## PL
+            foreach ($qArr as $row) {
+                $fop = array();
+                if ($row['field_83']) ## Jika tipe kartu true 
+                {
+                    ##FOP Data
+                    $fop['cif_no']              = $row['field_42'];
+                    $fop['cnum']                = $row['field_3'];
+                    $fop['id_campaign']         = $row['target_campaign'];
+                    $fop['card_basic']          = $row['field_4'];
+                    $fop['trx_card']            = $row['field_5'];
+                    $fop['trx_cardtype']        = $row['field_83'];
+                    $fop['trx_reff']            = $row['field_9'];
+                    $fop['trx_date']            = $this->convertExcelToNormalDate($row['field_62']);
+                    $fop['trx_amount']          = $row['field_58'];
+                    $fop['trx_description']     = $row['field_61'];
+                    $fop['trx_countcard']       = $row['field_79'];
+                    $fop['uploadcode']          = $uploadcode;
+
+                    $str = "";
+                    $str = $this->db->insert_string('tb_trxdetail', $fop);
+                    array_push($insertData_trx, $str);
+                    $trxInsert++;
+                }
+            } ## End foreach
+        endif;
 
         ## Start Bulk Insert
-        $this->multiple_insert($insertData, 5000);
-        $this->multiple_insert($insertData_trx, 5000);
-        $this->multiple_insert($insertData_skip, 5000);
+        $this->multiple_insert($insertData, 500);
+        $this->multiple_insert($insertData_skip, 500);
+
+        ## Detail trx FOP
+        $this->multiple_insert($insertData_trx, 500);
+
+        ## Detail trx SUP
+        $this->multiple_insert($insertData_sup, 500);
+
         $return['inserted'] = $inserted;
-        $return['trxInsert'] = $trxInsert;
-        $return['dup'] = $totalSkip;
+        $return['dup'] = $inserted1;
         $return['uploadcode'] = $uploadcode;
         return $return;
     }
