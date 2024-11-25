@@ -10,7 +10,7 @@
     color: black;
     font-size: 12px;
     margin: 5px;
-    padding: 5px;
+    padding: 5px; 
   }
 
   .martin {
@@ -331,10 +331,12 @@
   }
 
   function autofillSimulator() {
-    <?php if (empty($refreshbag)) : ?>
-      var nominal = "<?= @$prospect['max_loan']; ?>";
-    <?php else : ?>
+    <?php if (!empty(@$refreshbagcop)) : ?>
+      var nominal = "<?= @$refreshbagcop['max_loan']; ?>";
+    <?php elseif (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) : ?>
       var nominal = "<?= @$refreshbag['max_loan']; ?>";
+    <?php else : ?>
+        var nominal = "<?= @$prospect['max_loan']; ?>";
     <?php endif; ?>
     var tenor = 6;
     var bunga = 0.89;
@@ -860,7 +862,7 @@
         });
 
         var st_id_product = val.join("|").toString();
-
+        // console.log(url);
         jQuery.post(url, {
             no_contacted: value,
             id_notelp: value2,
@@ -982,7 +984,7 @@ function hide_5digit_phone($val)
         <input type="button" class="btn-browse" value="Browse" onclick="ajaxBox('Browse Prospects','<?php echo site_url() ?>/tsr/list_prospect/<?php echo $this->uri->segment(3) ?>')" />
       </div>
       <?php if ($this->uri->segment(4) != '') : ?>
-        <div class="det-left" style="height: 700px !important;">
+        <div class="det-left" style="height: 775px !important;">
           <input type="button" class="btn-contacted" id="btn-additional" value="Cust Info" onclick="showAdditionalInfo()" />
           <!-- <input type="button" class="btn-contacted" id="btn-additional" value="Cust Info" onclick="showAdditionalInfo()" /> -->
           <input type="button" class="btn-contacted" id="btn-verf" value="Verifikasi" onclick="loadFormVerifikasi()" /> &nbsp;
@@ -999,19 +1001,17 @@ function hide_5digit_phone($val)
                   <td>:</td>
                   <td><?php echo 'CASE' . str_pad($prospect['id_prospect'], 8, 0, STR_PAD_LEFT) ?> / <?= $prospect['cnum']; ?> </td>
                 </tr>
-                <?php if ($prospect['campaign_product']  != 62) { ?>
-                  <tr>
-                    <td width="125">Campaign</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['name']; ?></td>
-                  </tr>
-                <?php } ?>
+                <tr>
+                  <td width="125">Campaign</td>
+                  <td>:</td>
+                  <td><?php echo $prospect['name']; ?></td>
+                </tr>
                 <!-- BUG:         <tr>
          <td width="125">Timezone</td>  
          <td>:</td>
          <td><?php echo $prospect['timezone'] == '' ? 'No Data' : $prospect['timezone']; ?></td>
         </tr> -->
-                <?php if ($prospect['campaign_product'] != '39' || $prospect['campaign_product']  != 62) { ?>
+                <?php if ($prospect['campaign_product'] != '39') { ?>
                   <tr>
                     <td width="125">Product</td>
                     <td>:</td>
@@ -1040,69 +1040,12 @@ function hide_5digit_phone($val)
                   </td>
                 </tr>
 
-                <?php if ($prospect['campaign_product'] != '62') { ?>
-                  <tr>
-                    <td width="125">Nama</td>
-                    <td>:</td>
-                    <td><strong style="font-size: 1.3em;"><?php echo $prospect['fullname'] ?> <?= $prospect['is_priority'] == '1' ? '<font class="blink_me" color="CORAL" title="No callblocking rule to this account">(PRIORITIZE CUSTOMER)</font>' : ''; ?></strong></td>
-                  </tr>
-                <?php } ?>
 
-                <?php if ($prospect['campaign_product'] == '62') { ?>
-                  <tr>
-                    <td width="125">Nama Nasabah</td>
-                    <td>:</td>
-                    <td><strong style="font-size: 1.3em;"><?php echo $prospect['fullname'] ?> <?= $prospect['is_priority'] == '1' ? '<font class="blink_me" color="CORAL" title="No callblocking rule to this account">(PRIORITIZE CUSTOMER)</font>' : ''; ?></strong></td>
-                  </tr>
-
-                  <tr class="hide">
-                    <td width="125">Nama Penerima</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['maiden_name'] ?> </p>
-                    </td>
-                  </tr>
-
-                  <tr class="hide">
-                    <td width="125">Nomor Akun Penerima</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['account_number'] ?> </p>
-                    </td>
-                  </tr>
-
-                  <tr class="hide">
-                    <td width="125">Bank Penerima</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['social_number'] ?> </p>
-                    </td>
-                  </tr>
-
-                  <tr class="hide">
-                    <td width="125">Permintaan Jumlah Transfer</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;">Rp. <?php echo number_format($prospect['max_loan'], 0) ?> </p>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td width="125">50% Credit Limit</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;">Rp. <?php echo number_format($prospect['loan1'], 0) ?> </p>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td width="125">Drop base</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;"><?php echo ($prospect['createdate']) ?> </p>
-                    </td>
-                  </tr>
-                <?php } ?>
+                <tr>
+                  <td width="125">Nama</td>
+                  <td>:</td>
+                  <td><strong style="font-size: 1.3em;"><?php echo $prospect['fullname'] ?> <?= $prospect['is_priority'] == '1' ? '<font class="blink_me" color="CORAL" title="No callblocking rule to this account">(PRIORITIZE CUSTOMER)</font>' : ''; ?></strong></td>
+                </tr>
                 <!--        
         <tr>
          <td width="125">Umur</td>
@@ -1128,55 +1071,54 @@ function hide_5digit_phone($val)
         </tr> 
 -->
 
-                <?php if ($prospect['campaign_product'] != '62') : ?>
-                  <tr class="<?= empty($prospect['gender']) ? 'hide' : ''; ?>">
-                    <td>Gender</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['gender'] ?>
-                      <?php
-                      switch (strtolower($prospect['gender'])) {
-                        case 'perempuan':
-                          echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
-                          break;
-                        case 'wanita':
-                          echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
-                          break;
-                        case 'female':
-                          echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
-                          break;
-                        case 'f':
-                          echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
-                          break;
-                        case '0':
-                          echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
-                          break;
-                        case 'laki':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
-                        case 'lakilaki':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
-                        case 'laki-laki':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
-                        case 'm':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
-                        case '1':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
-                        case 'pria':
-                          echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
-                          break;
 
-                        default:
-                          echo '';
-                          break;
-                      }
-                      ?>
-                    </td>
-                  </tr>
-                <?php endif; ?>
+                <tr class="<?= empty($prospect['gender']) ? 'hide' : ''; ?>">
+                  <td>Gender</td>
+                  <td>:</td>
+                  <td><?php echo $prospect['gender'] ?>
+                    <?php
+                    switch (strtolower($prospect['gender'])) {
+                      case 'perempuan':
+                        echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
+                        break;
+                      case 'wanita':
+                        echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
+                        break;
+                      case 'female':
+                        echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
+                        break;
+                      case 'f':
+                        echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
+                        break;
+                      case '0':
+                        echo '<img src="' . base_url() . '/component/images/female.png" alt="Female" width="16" height="16" />';
+                        break;
+                      case 'laki':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+                      case 'lakilaki':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+                      case 'laki-laki':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+                      case 'm':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+                      case '1':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+                      case 'pria':
+                        echo '<img src="' . base_url() . '/component/images/male.png" alt="Male" width="16" height="16" />';
+                        break;
+
+                      default:
+                        echo '';
+                        break;
+                    }
+                    ?>
+                  </td>
+                </tr>
 
                 <?php if ($prospect['campaign_product'] == '59') : ?>
                   <tr class="<?= empty($prospect['available_credit']) ? 'hide' : ''; ?>">
@@ -1220,54 +1162,22 @@ function hide_5digit_phone($val)
                     </td>
                   </tr>
                 <?php endif; ?>
-
-                <?php if ($prospect['campaign_product'] != '57' && $prospect['campaign_type'] != '8' && $prospect['campaign_product'] != '59' && $prospect['campaign_product'] != '61' && $prospect['campaign_product'] != '62') : ?>
+                <?php if($prospect['campaign_product'] == '57' && in_array("COP", json_decode($offers[0]['xsell_cardxsell']))){?>
+                    <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
+                      <td>Data Info COP</td>
+                      <td>:</td>
+                      <td>
+                        <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p>
+                      </td>
+                    </tr>
+                <?php } ?>
+                <?php if ($prospect['campaign_product'] != '57' && $prospect['campaign_type'] != '8' && $prospect['campaign_product'] != '59') : ?>
                   <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
                     <td>Data Info</td>
                     <td>:</td>
                     <td>
                       <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p>
                     </td>
-                  </tr>
-                <?php endif; ?>
-
-                <?php if ($prospect['campaign_product'] == '57') : ?>
-                  <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
-                    <td>Last Taken</td>
-                    <td>:</td>
-                    <td>
-                      <strong style="font-size: 1.3em;"><?php echo $prospect['datainfo'] ?></strong>
-                      <!-- <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p> -->
-                    </td>
-                  </tr>
-                <?php endif; ?>
-
-                <?php if ($prospect['campaign_product'] == '61') : ?>
-                  <tr class="<?= empty($prospect['plafon24']) ? 'hide' : ''; ?>">
-                    <td>Last Taken</td>
-                    <td>:</td>
-                    <td>
-                      <strong style="font-size: 1.3em;"><?php echo $prospect['plafon24'] ?></strong>
-                      <!-- <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p> -->
-                    </td>
-                  </tr>
-                  <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
-                    <td>Data Info</td>
-                    <td>:</td>
-                    <td>
-                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p>
-                    </td>
-                  </tr>
-
-                  <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>">
-                    <td>Status</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['status'] ?></td>
-                  </tr>
-                  <tr class="<?= empty($prospect['cycle']) ? 'hide' : ''; ?>">
-                    <td>Cycle</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['cycle']; ?></td>
                   </tr>
                 <?php endif; ?>
 
@@ -1379,17 +1289,22 @@ function hide_5digit_phone($val)
                   </tr>
                 <?php endif; ?>
 
-                <?php if ($prospect['campaign_product'] == '44' || $prospect['campaign_product'] == '46' || $prospect['campaign_product'] == '47' || $prospect['campaign_product'] == '48' || $prospect['campaign_product'] == '50' || $prospect['campaign_product'] == '52' || $prospect['campaign_product'] == '53' || $prospect['campaign_product'] == '49' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '41' || $prospect['campaign_product'] == '42') : //FlexiPay & Cash On Phone & Supplement & Aktivasi 
+                <?php if ($prospect['campaign_product'] == '44' || ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) || $prospect['campaign_product'] == '47' || $prospect['campaign_product'] == '48' || $prospect['campaign_product'] == '50' || $prospect['campaign_product'] == '52' || $prospect['campaign_product'] == '53' || $prospect['campaign_product'] == '49' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '41' || $prospect['campaign_product'] == '42') : //FlexiPay & Cash On Phone & Supplement & Aktivasi 
                 ?>
-
                   <?php if ($prospect['multiproduct'] == '1') : ?>
-                    <?php if ($prospect['campaign_product'] == '46') { ?>
+                    <?php if ($prospect['campaign_product'] == '57' && in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) { ?>
                       <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>">
                         <td>Status COP</td>
                         <td>:</td>
                         <td><?php echo $prospect['status'] ?></td>
                       </tr>
-                      <tr class="<?= empty($prospect['status2']) ? 'hide' : ''; ?>">
+                    <?php } else if ($prospect['campaign_product'] == '46') { ?>
+                      <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>">
+                        <td>Status COP</td>
+                        <td>:</td>
+                        <td><?php echo $prospect['status'] ?></td>
+                      </tr>
+                      <tr class="<?= empty($prospect['status2'])? 'hide' : ''; ?>">
                         <td>Status FOP</td>
                         <td>:</td>
                         <td><?php echo $prospect['status2'] ?></td>
@@ -1424,6 +1339,7 @@ function hide_5digit_phone($val)
                       <td><?php echo $prospect['status'] ?></td>
                     </tr>
                   <?php endif; ?>
+                  
                   <tr class="<?= empty($prospect['code_tele']) ? 'hide' : ''; ?>">
                     <td>Code Tele</td>
                     <td>:</td>
@@ -1438,13 +1354,15 @@ function hide_5digit_phone($val)
                     <td>Card Basic</td>
                     <td>:</td>
                     <td><?php echo $prospect['card_number_basic']; ?> / <?php echo $prospect['card_type']; ?> / Cycle: <?php echo $prospect['cycle']; ?></td>
+                  </tr>
+                  
                   <tr class="<?= empty($prospect['cycle']) ? 'hide' : ''; ?>">
-                    <td>Cycle</td>
+                    <td>Cycle <?= !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell'])) ? '' : 'COP' ?></td>
                     <td>:</td>
                     <td><?php echo $prospect['cycle']; ?></td>
                   </tr>
                   <tr class="<?= empty($prospect['card_type']) ? 'hide' : ''; ?>">
-                    <td>Card Type</td>
+                    <td>Card Type <?= !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell'])) ? '' : 'COP' ?></td>
                     <td>:</td>
                     <td><?php echo $prospect['card_type'] ?></td>
                   </tr>
@@ -1475,21 +1393,21 @@ function hide_5digit_phone($val)
                   </tr>
                 <?php endif; ?>
 
-                <?php if ($prospect['campaign_product'] == '46') : //Cash On Phone 
+                <?php if ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) : //Cash On Phone 
                 ?>
-                  <tr style="display:none !important;">
+                  <tr style="display:none;">
                     <td>Eligible 0%</td>
                     <td>:</td>
                     <td><?php echo $prospect['custom1'] == 'R-0' ? 'Yes' : 'No' ?></td>
                   </tr>
                   <tr class="<?= empty($prospect['max_loan']) ? 'hide' : ''; ?>">
-                    <td>Available Limit</td>
+                    <td>Available Limit COP</td>
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['max_loan']); ?>
-                      <?php if (!empty($refreshbag)) { ?>
-                        <!-- onmra: 106 -->
-                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['max_loan'] == '0') ?  $refreshbag['max_loan'] : price_format($refreshbag['max_loan'])); ?></span>
-                        <!-- ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['max_loan']); ?></span> -->
+                      <?php if (!empty($refreshbagcop)) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbagcop['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbagcop['max_loan']); ?></span>
+                      <?php }else if (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['max_loan']); ?></span>
                       <?php } ?>
                     </td>
                   </tr>
@@ -1497,9 +1415,10 @@ function hide_5digit_phone($val)
                     <td>Loan 1</td>
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['loan1']); ?>
-                      <?php if (!empty($refreshbag)) { ?>
-                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['loan1'] == '0') ?  $refreshbag['loan1'] : price_format($refreshbag['loan1'])); ?></span>
-                        <!-- ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan1']); ?></span> -->
+                      <?php if (!empty($refreshbagcop)) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbagcop['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbagcop['loan1']); ?></span>
+                      <?php }else if (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan1']); ?></span>
                     </td>
                   <?php } ?>
                   </tr>
@@ -1507,9 +1426,10 @@ function hide_5digit_phone($val)
                     <td>Loan 2</td>
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['loan2']); ?>
-                      <?php if (!empty($refreshbag)) { ?>
-                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['loan2'] == '0') ?  $refreshbag['loan2'] : price_format($refreshbag['loan2'])); ?></span>
-                        <!-- ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan2']); ?></span> -->
+                      <?php if (!empty($refreshbagcop)) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbagcop['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbagcop['loan2']); ?></span>
+                      <?php }else if (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan2']); ?></span>
                       <?php } ?>
                     </td>
                   </tr>
@@ -1517,9 +1437,10 @@ function hide_5digit_phone($val)
                     <td>Loan 3</td>
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['loan3']); ?>
-                      <?php if (!empty($refreshbag)) { ?>
-                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['loan3'] == '0') ?  $refreshbag['loan3'] : price_format($refreshbag['loan3'])); ?></span>
-                        <!-- ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan3']); ?></span> -->
+                      <?php if (!empty($refreshbagcop)) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbagcop['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbagcop['loan3']); ?></span>
+                      <?php }else if (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) { ?>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['loan3']); ?></span>
                       <?php } ?>
                     </td>
 
@@ -1594,21 +1515,65 @@ function hide_5digit_phone($val)
 
                 <?php endif; ?>
 
+
+                <?php if ($prospect['campaign_product'] == '57') : ?>
+                  <?php if (in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) :  ?>
+                  <tr class="<?= empty($prospect['datainfo_xsell']) ? 'hide' : ''; ?>">
+                    <td>Last Taken</td>
+                    <td>:</td>
+                    <td>
+                      <strong style="font-size: 1.3em;"><?php echo $prospect['datainfo_xsell'] ?></strong>
+                      <!-- <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p> -->
+                    </td>
+                  </tr>
+                  <?php else : ?>
+                    <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
+                      <td>Last Taken</td>
+                      <td>:</td>
+                      <td>
+                        <strong style="font-size: 1.3em;"><?php echo $prospect['datainfo'] ?></strong>
+                        <!-- <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p> -->
+                      </td>
+                    </tr>
+                  <?php endif; ?>
+                <?php endif; ?>
                 <?php if ($prospect['campaign_product'] == '57') : //Cash PLUS 
                 ?>
                   <tr class='hide'>
-                    <!-- <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>"> -->
-                    <td>Rate</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['status'] ?></td>
-                  </tr>
-                  <tr>
-                    <!-- <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>"> -->
+                    <!-- <tr class="<?= empty($prospect['status2']) ? 'hide' : ''; ?>"> -->
                     <td>Rate</td>
                     <td>:</td>
                     <td><?php echo $prospect['status2'] ?></td>
                   </tr>
-                  <tr style="display:none !important;">
+                  <?php if (in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) { ?>
+                  <tr>
+                    <!-- <tr class="<?= empty($prospect['status_rate_cpil']) ? 'hide' : ''; ?>"> -->
+                    <td>Rate</td>
+                    <td>:</td>
+                    <td><?php echo $prospect['status_rate_cpil'] ?></td>
+                  </tr>
+                  
+                  <tr class="<?= empty($prospect['card_exp']) ? 'hide' : ''; ?>">
+                    <td>Cycle</td>
+                    <td>:</td>
+                    <td><?php echo $prospect['card_exp']; ?></td>
+                  </tr>
+                  <?php } else{ ?>
+                    <tr>
+                      <!-- <tr class="<?= empty($prospect['status2']) ? 'hide' : ''; ?>"> -->
+                      <td>Rate</td>
+                      <td>:</td>
+                      <td><?php echo $prospect['status2'] ?></td>
+                    </tr>
+                    
+                    <tr class="<?= empty($prospect['cycle']) ? 'hide' : ''; ?>">
+                      <td>Cycle</td>
+                      <td>:</td>
+                      <td><?php echo $prospect['cycle']; ?></td>
+                    </tr>
+                  <?php } ?>
+
+                  <tr style="display:none;"> 
                     <td>Eligible 0%</td>
                     <td>:</td>
                     <td><?php echo $prospect['custom1'] == 'R-0' ? 'Yes' : 'No' ?></td>
@@ -1618,11 +1583,6 @@ function hide_5digit_phone($val)
                     <td>Code Tele</td>
                     <td>:</td>
                     <td><?php echo $prospect['code_tele'] ?></td>
-                  </tr>
-                  <tr class="<?= empty($prospect['cycle']) ? 'hide' : ''; ?>">
-                    <td>Cycle</td>
-                    <td>:</td>
-                    <td><?php echo $prospect['cycle']; ?></td>
                   </tr>
                   <tr class="hide">
                     <!-- <tr class="<?= empty($prospect['card_type']) ? 'hide' : ''; ?>"> -->
@@ -1636,7 +1596,7 @@ function hide_5digit_phone($val)
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['creditlimit']); ?>
                       <?php if (!empty($refreshbag)) { ?>
-                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['creditlimit']); ?></span>
+                        ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['creditlimit'] == '0') ?  $refreshbag['creditlimit'] : price_format($refreshbag['creditlimit'])); ?></span>
                       <?php } ?>
                     </td>
                   </tr>
@@ -1645,11 +1605,30 @@ function hide_5digit_phone($val)
                     <td>:</td>
                     <td><?php echo 'Rp. ' . price_format($prospect['available_credit']); ?>
                       <?php if (!empty($refreshbag)) { ?>
-                        <!-- onmra: 104 ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . price_format($refreshbag['available_credit']); ?></span> -->
                         ---- <span class="refresh" title="Last Refresh: <?= $refreshbag['period'] ?>"><?php echo 'Rp. ' . (($refreshbag['available_credit'] == '0') ?  $refreshbag['available_credit'] : price_format($refreshbag['available_credit'])); ?></span>
-                      </td>
-                  <?php } ?>
+                      <?php } ?>
+                  </td>
                   </tr>
+                  <?php
+                    if (in_array("COP", json_decode($offers[0]['xsell_cardxsell']))){
+                  ?>
+                  <tr style="font-weight: 600;">
+                    <td>Total Available Limit CPIL + COP</td>
+                    <td>:</td>
+                    <?php
+                    $totallimitcpilcop = 0;
+                    $totallimitcpilcop = $totallimitcpilcop + (!empty($refreshbag) ? $refreshbag['available_credit'] : $prospect['available_credit']);
+                    $totallimitcpilcop = $totallimitcpilcop + (!empty($refreshbagcop) ? $refreshbagcop['max_loan'] : $prospect['max_loan']);
+                    $totaloricpilcop = $prospect['available_credit'] + $prospect['max_loan'];
+                    ?>
+                    <td style="color: #d3b71a; font-size: 12px;"><?php echo 'Rp. ' . price_format($totaloricpilcop); ?>
+                      <?php if (!empty($refreshbag) || !empty($refreshbagcop)) { ?>
+                        <span style="color: #736f6f; font-weight: 100; font-size: 11px;">----</span> <span class="refresh" ><?php echo 'Rp. ' . price_format($totallimitcpilcop); ?></span>
+                      <?php } ?>
+                    </td>
+                  </tr>
+
+                  <?php } ?>
                   <tr class="hide">
                     <td>Loan 2</td>
                     <td>:</td>
@@ -1945,10 +1924,10 @@ function hide_5digit_phone($val)
                   </tr>
                 <?php endif; ?>
 
-                <?php if ($prospect['campaign_product'] == '44' || $prospect['campaign_product'] == '46' || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '61' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '48' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '59') : //FlexiPay & Cash On Phone & Personal Loan 
+                <?php if ($prospect['campaign_product'] == '44' || ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '48' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '59') : //FlexiPay & Cash On Phone & Personal Loan 
                 ?>
 
-                  <!-- <tr style="display:<?php echo ($prospect['campaign_product'] == '44' || $prospect['campaign_product'] == '46' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32') ? 'hide' : ''; ?>"> -->
+                  <!-- <tr style="display:<?php echo ($prospect['campaign_product'] == '44' || ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32') ? 'hide' : ''; ?>"> -->
                   <?php
                   $data_offer = json_decode($offers[0]['xsell_cardxsell']);
                   if ($prospect['multiproduct'] == '1') {
@@ -1970,6 +1949,14 @@ function hide_5digit_phone($val)
                             <a href="javascript:installment_simulator('show','<?= $xsell ?>');">Installment Simulator</a>
                           </td>
                         </tr>
+                      <?php } elseif ($xsell == 'CPIL') { ?>
+                        <tr>
+                          <td>Simulasi CPIL</td>
+                          <td>:</td>
+                          <td>
+                            <a href="javascript:installment_simulator('show');">Installment Simulator</a>
+                          </td>
+                        </tr>
                       <?php } elseif ($xsell == 'PL') { ?>
                         <tr>
                           <td>Simulasi Personal Loan</td>
@@ -1982,7 +1969,7 @@ function hide_5digit_phone($val)
 
                     <?php }
                   } else { ?>
-                    <tr style="display:<?php echo ($prospect['campaign_product'] == '44' || $prospect['campaign_product'] == '46' || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '61' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '59') ? 'hide' : ''; ?>">
+                    <tr style="display:<?php echo ($prospect['campaign_product'] == '44' || ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '59') ? 'hide' : ''; ?>">
                       <td>Simulasi</td>
                       <td>:</td>
                       <td>
@@ -2078,7 +2065,7 @@ function hide_5digit_phone($val)
                 <input type="button" name="btContacted" value="Not Interested" id="btncall-parent-50" data-weight="<?= $miscModel->get_tableDataById('tb_callcode', '50', 'id_callcode', 'weight'); ?>" onclick="go_contacted(50)" class="btn-uncontacted" />
                 <input type="button" name="btContacted" value="Thinking" id="btncall-parent-51" data-weight="<?= $miscModel->get_tableDataById('tb_callcode', '51', 'id_callcode', 'weight'); ?>" onclick="go_contacted(51)" class="btn-contacted" />
               </p>
-              <?php if (($prospect['campaign_product'] == '39' || $prospect['campaign_product'] == '59' || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '61' || $prospect['campaign_product'] == '62' || $prospect['campaign_product'] == '44' || $prospect['campaign_product'] == '46' || $prospect['campaign_product'] == '49' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '41' || $prospect['campaign_product'] == '42' || $prospect['campaign_product'] == '54' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '58') && $prospect['multiproduct'] != 1) : //Supplement 
+              <?php if (($prospect['campaign_product'] == '39' || $prospect['campaign_product'] == '59' || $prospect['campaign_product'] == '60' || $prospect['campaign_product'] == '44' || ($prospect['campaign_product'] == '46' || in_array("COP", json_decode($offers[0]['xsell_cardxsell']))) || $prospect['campaign_product'] == '49' || $prospect['campaign_product'] == '32' || $prospect['campaign_product'] == '40' || $prospect['campaign_product'] == '41' || $prospect['campaign_product'] == '42' || $prospect['campaign_product'] == '54' || $prospect['campaign_product'] == '57' || $prospect['campaign_product'] == '58') && $prospect['multiproduct'] != 1) : //Supplement 
               ?>
                 <p>
                   <input type="button" id="btn-agree" name="btContacted" value="Agree Main" data-btncamptype="<?= $miscModel->get_tableDataById('tb_product', $prospect['campaign_product'], 'id_product', 'code'); ?>" onclick="go_agree(52)" class="btn-contacted hide" />
@@ -2391,7 +2378,7 @@ function hide_5digit_phone($val)
 
 <!-- Simulator Cicilan -->
 <?php if (@$prospect['multiproduct'] != '1') { ?>
-  <?php if (@$prospect['campaign_product'] != '32' && @$prospect['campaign_product'] != '44' && @$prospect['campaign_product'] != '60' && @$prospect['campaign_product'] != '61' && @$prospect['campaign_product'] != '59' && @$prospect['campaign_product'] != 57) : ?>
+  <?php if (@$prospect['campaign_product'] != '32' && @$prospect['campaign_product'] != '44' && @$prospect['campaign_product'] != '60' && @$prospect['campaign_product'] != '59' && @$prospect['campaign_product'] != 57) : ?>
     <div id="installment_simulator" style="height: auto;">
       <fieldset>
         <legend>Installment Simulator</legend>
@@ -2597,115 +2584,6 @@ function hide_5digit_phone($val)
     <div id="installment_simulator">
       <fieldset>
         <legend>Installment Simulator FOP Statemnt</legend>
-        <!--<p> <input type="button" value="close" class="btn-uncontacted" onclick="zipcodelist('hide')" /></p>-->
-        <table style="overflow: auto; width: 100%">
-          <tr>
-            <td>Nominal</td>
-            <td>:</td>
-            <td style="width:5px">Rp.</td>
-            <td>
-              <div style="font-size: 14px;">
-                <input type="number" min="500000" step="500000" id="simulator_plafon" name="simulator_plafon" value="500000" style="width:150px; font-size: 14px;" />
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td colspan="2" style="">
-              <input type="button" style="width: 100px; margin-left: 28px;" class="btn-contacted" id="" value="Hitung Cicilan" onclick="simulasiPinjaman1()">
-              <input type="button" value="close" class="btn-uncontacted" onclick="installment_simulator('hide')" />
-            </td>
-          </tr>
-        </table>
-      </fieldset>
-      <fieldset>
-        <legend>Installment Tree</legend>
-        <table style="overflow: auto; width: 100%">
-          <tr>
-            <td></td>
-            <td colspan="2">
-              <div id="result_simulator" style="font-size: 13px;">
-                <?php $z = 0;
-                foreach ($list_productcode as $prodcode) { ?>
-                  <label> Flexipay / <?= $prodcode['bunga'] ?>% / <?= $prodcode['tenor'] ?> Bulan / Bunga Efektif <?= $prodcode['bunga_efektif'] * 100 ?>% / Cicilan: <span id="angsuranCal_<?= $z; ?>"></span> / EBR: <span id="angsuranEbr_<?= $z; ?>"></span> </label></br><br>
-                  <input type="hidden" id="bunga_<?= $z; ?>" value="<?= $prodcode['bunga']; ?>">
-                  <input type="hidden" id="tenor_<?= $z; ?>" value="<?= $prodcode['tenor']; ?>">
-                <?php $z++;
-                } ?>
-              </div>
-            </td>
-          </tr>
-        </table>
-        <br />
-      </fieldset>
-    </div>
-    <!-- Simulasi Personal Loan -->
-    <script type="text/javascript">
-      function fixInputCal() {
-        var input_pinjaman = $('#simulator_plafon').val();
-        var max_pinjaman = 100000000;
-        var fix_pinjaman;
-        fix_pinjaman = input_pinjaman.replace(/[^0-9]/g, '');
-        fix_pinjaman = parseInt(fix_pinjaman);
-
-        var min_pinjaman = 500000;
-
-        if (isNaN(fix_pinjaman)) {
-          new Boxy.alert('Mohon Nominal tidak diisi dengan huruf, simbol atau tanda baca apapun, termasuk koma (,) dan Titik (.)');
-          $('#ben_pinjamincome').val('0');
-        } else if (input_pinjaman < min_pinjaman) {
-          new Boxy.alert('Nominal terlalu kecil. Minimal : 500.000');
-          $('#simulator_plafon').val(min_pinjaman);
-        } else {
-          $('#simulator_plafon').val(fix_pinjaman);
-        }
-
-      }
-
-      function simulasiPinjaman1() {
-        fixInputCal();
-        var pinjaman = $('#simulator_plafon').val() * 1;
-
-        for (var i = 0; i < 5; i++) {
-          var bunga = $('#bunga_' + i).val() * 1;
-          var tenor = $('#tenor_' + i).val() * 1;
-          var cicilan_pokok = pinjaman / tenor;
-          var cicilan_bunga = pinjaman * (bunga / 100);
-          var jml_angsuran = Math.round(cicilan_pokok + cicilan_bunga);
-
-          // Script New
-          var cicilan_asli = pinjaman * (tenor + 1);
-          var cicilan_bung = cicilan_asli / 2;
-          var hasil = Math.round(cicilan_bung * (bunga / 100));
-
-          $('#angsuranCal_' + i).empty();
-          $('#angsuranCal_' + i).append(jml_angsuran);
-
-          $('#angsuranCal_' + i).priceFormat({
-            prefix: 'Rp.',
-            thousandsSeparator: ',',
-            centsLimit: 0
-          });
-
-          $('#angsuranEbr_' + i).empty();
-          $('#angsuranEbr_' + i).append(hasil);
-          $('#angsuranEbr_' + i).priceFormat({
-            prefix: 'Rp.',
-            thousandsSeparator: ',',
-            centsLimit: 0
-          });
-        }
-      }
-
-      $(document).ready(function() {
-        simulasiPinjaman1();
-      });
-    </script>
-  <?php elseif ($prospect['campaign_product'] == '61') : ?>
-    <div id="installment_simulator">
-      <fieldset>
-        <legend>Installment Simulator FOP Unbilled</legend>
         <!--<p> <input type="button" value="close" class="btn-uncontacted" onclick="zipcodelist('hide')" /></p>-->
         <table style="overflow: auto; width: 100%">
           <tr>
@@ -3570,10 +3448,13 @@ function hide_5digit_phone($val)
           <table style="overflow: auto; width: 100%">
             <?php foreach ($list_productcode_cop as $prodcode) : ?>
               <?php
-              if (empty($refreshbag)) {
-                $pinjaman = $prospect['max_loan'] * 1;
-              } else {
+              // refresh bag cop
+              if(!empty($refreshbagcop)){
+                $pinjaman = $refreshbagcop['max_loan'] * 1;
+              }else if (!empty($refreshbag) && !in_array("CPIL", json_decode($offers[0]['xsell_cardxsell']))) {
                 $pinjaman = $refreshbag['max_loan'] * 1;
+              } else {
+                $pinjaman = $prospect['max_loan'] * 1;
               }
 
               $tenor = $prodcode['tenor'] * 1;
@@ -3599,6 +3480,245 @@ function hide_5digit_phone($val)
           </table>
         </fieldset>
       </div>
+    <?php elseif ($xsell == 'CPIL') : ?>
+        <div id="installment_simulator" style="height: auto;">
+          <fieldset>
+          <legend>Installment Simulator CPIL</legend>
+          <!--<p> <input type="button" value="close" class="btn-uncontacted" onclick="zipcodelist('hide')" /></p>-->
+          <table style="overflow: auto; width: 100%">
+            <tr>
+              <td style="width:175px">Nominal</td>
+              <td>:</td>
+              <td style="width:10px">Rp.</td>
+              <!-- <td>
+                <div> -->
+              <!-- <input type="text" id="simulator_sum" name="simulator_sum" value="0" size="70" style="width:300px" /> -->
+              <!-- <input type="text" id="simulator_sum" name="simulator_sum" value="0" size="70" style="width:300px" /> -->
+              <!-- <input type="text" id="simulator_sum" name="simulator_sum" oninput="titikOtomatis(this)" value="0" size="70" style="width:300px" /> -->
+
+              <!-- </div>
+              </td> -->
+              <td>
+                <div> <input type="text" id="simulator_sum3_cpilxcop" name="simulator_sum3_cpilxcop" onchange="hitungkomas_cpilxcop()" value="0" size="70" style="width:300px" /> </div>
+              </td>
+              <td style="display: none;">
+                <div> <input type="text" id="simulator_sum2_cpilxcop" name="simulator_sum2_cpilxcop" value="0" size="70" style="width:300px" /> </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Tenor</td>
+              <td>:</td>
+              <td></td>
+              <td>
+                <div>
+                  <!-- <input type="text" id="simulator_tenure_cpilxcop" name="simulator_tenure_cpilxcop" value="0" size="70" style="width:35px" /> -->
+                  <select name="simulator_tenure_cpilxcop" id="simulator_tenure_cpilxcop">
+                    <!-- <?php foreach ($list_productcode as $teno) : ?> -->
+                    <!-- <option value="<?= $teno['tenor'] ?>"><?= $teno['tenor'] ?></option> -->
+                    <!-- <?php endforeach; ?> -->
+                    <option value="3">3</option>
+                    <option value="6">6</option>
+                    <option value="12">12</option>
+                    <option value="24">24</option>
+                    <option value="36">36</option>
+                    <option value="48">48</option>
+                  </select>
+                  Bulan
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Bunga Bulanan</td>
+              <td>:</td>
+              <td></td>
+              <td>
+                <div>
+                  <!-- <input type="text" id="simulator_interest_monthly_cpilxcop" name="simulator_interest_monthly_cpilxcop" value="0" size="70" style="width:35px" />  -->
+                  <select name="simulator_interest_monthly_cpilxcop" id="simulator_interest_monthly_cpilxcop">
+                    <!-- <?php foreach ($list_productcode as $month) : ?> -->
+                    <!-- <option value="<?= $month['bunga'] ?>"><?= $month['bunga'] ?></option> -->
+                    <!-- <?php endforeach; ?> -->
+                    <option value="0.49">0.49</option>
+                    <option value="0.59">0.59</option>
+                    <option value="0.69">0.69</option>
+                    <option value="0.79">0.79</option>
+                    <option value="0.89">0.89</option>
+                    <option value="0.99">0.99</option>
+                    <option value="1.15">1.15</option>
+                    <option value="1.25">1.25</option>
+                    <option value="1.30">1.30</option>
+                    <option value="1.50">1.50</option>
+                    <option value="1.59">1.59</option>
+                    <option value="1.68">1.68</option>
+                  </select>
+                  % | *Gunakan Titik (.) untuk Desimal
+                </div>
+              </td>
+            </tr>
+            <tr class="hide">
+              <td>Bunga Tahunan</td>
+              <td>:</td>
+              <td></td>
+              <td>
+                <div> <input type="text" id="simulator_interest_cpilxcop" name="simulator_interest_cpilxcop" value="0" size="70" style="width:35px" /> % | *Gunakan Titik (.) untuk Desimal</div>
+              </td>
+            </tr>
+            <tr>
+              <td>Cicilan dengan Bunga Bulanan</td>
+              <td>:</td>
+              <td>Rp.</td>
+              <td>
+                <div> <input type="text" id="simulator_installment_monthly_cpilxcop" name="simulator_installment_monthly_cpilxcop" placeholder="Cicilan" size="70" style="width:300px" readonly=true /> </div>
+              </td>
+            </tr>
+            <tr>
+              <td>EBR</td>
+              <td>:</td>
+              <td>Rp.</td>
+              <td>
+                <div> <input type="text" id="simulator_installment_ebr_cpilxcop" name="simulator_installment_ebr_cpilxcop" placeholder="EBR" size="70" style="width:300px" readonly=true /> </div>
+              </td>
+            </tr>
+            <tr class="hide">
+              <td>Cicilan dengan Bunga Tahunan</td>
+              <td>:</td>
+              <td>Rp.</td>
+              <td>
+                <div> <input type="text" id="simulator_installment_cpilxcop" name="simulator_installment_cpilxcop" placeholder="Cicilan" size="70" style="width:300px" readonly=true /> </div>
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <input type="button" class="btn-contacted" id="btn-hitung_simulator_cpilxcop" value="Hitung" onclick="simulateInstallments_cpilxcop()" /> &nbsp;
+                <input type="button" class="btn-contacted" id="btn-reset_simulator_cpilxcop" value="Reset" onclick="resetInstallments_cpilxcop()" /> &nbsp;
+                <input type="button" value="close" class="btn-uncontacted" onclick="installment_simulator('hide', 'CPIL')" />
+              </td>
+            </tr>
+          </table>
+          <br />
+        </fieldset>
+        <fieldset class="hide">
+          <legend>Installment Tree</legend>
+          <table style="overflow: auto; width: 100%">
+            <?php foreach ($list_productcode as $prodcode) : ?>
+              <?php
+              if (empty($refreshbag)) {
+                $pinjaman = $prospect['max_loan'] * 1;
+              } else {
+                $pinjaman = $refreshbag['max_loan'] * 1;
+              }
+
+              $tenor = $prodcode['tenor'] * 1;
+              $cicilan_pokok = $pinjaman / $tenor;
+              $cicilan_bunga = $pinjaman * ($prodcode['bunga'] / 100);
+              $jml_angsuran = round($cicilan_pokok + $cicilan_bunga);
+              ?>
+              <tr>
+                <td style="width:175px"> <?= $prodcode['tenor'] ?> Bulan - <?= $prodcode['bunga'] ?>%</td>
+                <!-- <td style="width:175px"><?= $prodcode['status'] ?> - <?= $prodcode['tenor'] ?> Bulan - <?= $prodcode['bunga'] ?>%</td> -->
+                <td>:</td>
+                <td style="width:10px">Rp. </td>
+                <td><?= price_format($jml_angsuran); ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </table>
+        </fieldset>
+      </div>
+      <script type="text/javascript">
+        function simulateInstallments_cpilxcop() {
+          var loan = $('#simulator_sum2_cpilxcop').val() * 1;
+          var tenure = $('#simulator_tenure_cpilxcop').val() * 1;
+          var interest = $('#simulator_interest_cpilxcop').val() * 1;
+          var interest_mothly = $('#simulator_interest_monthly_cpilxcop').val() * 1;
+          //var installment  = $('#simulator_installment_cpilxcop').val();
+          var cicilan_pokok = loan / tenure;
+          var cicilan_bunga = loan * (interest_mothly / 100);
+          var jml_angsuran = cicilan_pokok + cicilan_bunga;
+
+          interest = loan * ((interest / 12) / 100);
+          var principal = (loan / tenure) * 1;
+          var installment = (principal + interest) * 1;
+
+          // EBR
+          var cicilan_asli = loan * (tenure + 1);
+          var cicilan_bung = cicilan_asli / 2;
+          var hasil = cicilan_bung * (interest_mothly / 100);
+
+          $('#simulator_installment_cpilxcop').val(Math.round(installment));
+          $('#simulator_installment_cpilxcop').priceFormat({
+            prefix: '',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+
+          $('#simulator_installment_monthly_cpilxcop').val(Math.round(jml_angsuran));
+          $('#simulator_installment_monthly_cpilxcop').priceFormat({
+            prefix: '',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+
+          $('#simulator_installment_ebr_cpilxcop').val(Math.round(hasil));
+          $('#simulator_installment_ebr_cpilxcop').priceFormat({
+            prefix: '',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+        }
+
+        function resetInstallments_cpilxcop() {
+          $('#simulator_sum2_cpilxcop').val(0);
+          $('#simulator_sum3_cpilxcop').val(0);
+          $('#simulator_tenure_cpilxcop').val(0);
+          $('#simulator_installment_cpilxcop').val(0);
+          $('#simulator_interest_cpilxcop').val(0);
+          $('#simulator_interest_monthly_cpilxcop').val(0);
+          $('#simulator_installment_monthly_cpilxcop').val(0);
+        }
+
+        function hitungkomas_cpilxcop() {
+          $('#simulator_sum3_cpilxcop').priceFormat({
+            prefix: '',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+          var loan1 = $('#simulator_sum3_cpilxcop').val();
+          $('#simulator_sum2_cpilxcop').val(loan1);
+          $('#simulator_sum2_cpilxcop').priceFormat({
+            prefix: '',
+            thousandsSeparator: '',
+            centsLimit: 0
+          });
+
+          //alert(sum);
+          //var loan = $('#simulator_sum').val(loan1);
+          //alert(loan);
+          //$('#simulator_sum').val(Math.round(loan1)); 
+
+          simulateInstallments_cpilxcop();
+        }
+
+        function autofillSimulator_cpilxcop() {
+          <?php if (empty($refreshbag)) : ?>
+            var nominal = "<?= @$prospect['available_credit']; ?>";
+          <?php else : ?>
+            var nominal = "<?= @$refreshbag['available_credit']; ?>";
+          <?php endif; ?>
+          var tenor = 6;
+          var bunga = 0.89;
+
+          $('#simulator_sum2_cpilxcop').val(nominal);
+          $('#simulator_sum3_cpilxcop').val(nominal);
+          $('#simulator_tenure_cpilxcop').val(tenor);
+          $('#simulator_interest_monthly_cpilxcop').val(bunga);
+
+          simulateInstallments_cpilxcop();
+        }
+        autofillSimulator_cpilxcop();
+    </script>
     <?php elseif ($xsell == 'PL') : ?>
       <div id="installment_simulator_<?= $xsell; ?>">
         <fieldset>
