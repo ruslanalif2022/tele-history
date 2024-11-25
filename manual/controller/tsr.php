@@ -44,6 +44,7 @@ class Tsr extends Controller
 
     public function main($id_campaign = '')
     {
+        
         //$this->output->enable_profiler(TRUE);
 
         $data["txt_title"] = "Tele Dashboard";
@@ -119,7 +120,7 @@ class Tsr extends Controller
             $data['last_call_weight'] = $data['last_id_callcode'] != '0' ? $this->misc_model->get_tableDataById('tb_callcode', $data['last_id_callcode'], 'id_callcode', 'weight') : '0';
             //var_dump($data['last_id_callcode'], $data['last_call_weight']);
             //var_dump($data["prospect"]['multiproduct']);
-
+            
             if ($camps['multiproduct'] != '1') :
                 if ($camps['campaign_product'] == 47 || $camps['campaign_product'] == 48 || $camps['campaign_product'] == 50 || $camps['campaign_product'] == 51 || $camps['campaign_product'] == 52 || $camps['campaign_product'] == 53 || $camps['campaign_product'] == 36) {
                     ##Data OFFER
@@ -164,14 +165,6 @@ class Tsr extends Controller
                     // echo $this->db->last_query();
                     // die();
                     $data["list_productcode"] = $this->msc_model->get_list_msc("status='{$data["prospect"]['status']}' AND type = 'FP' AND is_active = 1");
-                } elseif ($camps['campaign_product'] == 61) {
-                    $this->load->model('admin/msc_model');
-                    ## Get Refresh
-                    $this->load->model('cop_model');
-                    $data['refreshbagfop'] = $this->cop_model->get_datarefreshfop($data["prospect"]['cif_no'], $data["prospect"]['card_number_basic'], $data["prospect"]['refreshcode']);
-                    // echo $this->db->last_query();
-                    // die();
-                    $data["list_productcode"] = $this->msc_model->get_list_msc("status='{$data["prospect"]['status']}' AND type = 'FP' AND is_active = 1");
                 } elseif ($camps['campaign_product'] == 32) {
                     $this->load->model('admin/msc_model');
                     $data["list_productcode"] = $this->msc_model->get_list_msc("status='{$data["prospect"]['status']}'");
@@ -197,7 +190,7 @@ class Tsr extends Controller
                 $off_cek = $this->db->query($sqlo);
                 $rowoff = $off_cek->row_array();
 
-                $this->load->model('offer_model');
+                $this->load->model('offer_model'); 
                 $offers = $this->offer_model->get_offer_byCardNum($data['prospect']['cif_no'], $id_campaign, $data['prospect']['card_number_basic'], $id_prospect);
                 $data["offers"] = $offers;
                 // echo $this->db->last_query();exit();
@@ -291,15 +284,13 @@ class Tsr extends Controller
                         //     $data["list_productcode"] = $this->msc_model->get_list_msc("status='{$data["prospect"]['status2']}'");
                         // }
                     } elseif ($xsell == 'CPIL') {
+                        // die('asd');
                         if ($main_product == '57') {
                             $this->load->model('admin/msc_model');
                             $data["list_productcode"] = $this->msc_model->get_list_msc("status='{$data["prospect"]['status2']}'");
                             $this->load->model('cop_model');
                             $data['refreshbag'] = $this->cop_model->get_datarefreshcpil($data["prospect"]['cif_no'], $data["prospect"]['card_number'], $data["prospect"]['refreshcodecpil']);
                         }
-                        // if($id_user == '1420'){
-                        //     var_dump($data["prospect"]['cif_no'] . $data["prospect"]['card_number'] . $data["prospect"]['refreshcodecpil']); die();
-                        // }
                     } else {
                         
                         if($loop_refreshbag == 1){
@@ -309,7 +300,6 @@ class Tsr extends Controller
                     }
                 }
             endif;
-
 
 
 
@@ -479,16 +469,13 @@ class Tsr extends Controller
         $qArr = $qObj->num_rows() > 0 ? $qObj->result_array() : array(); 
         
         $data['scripts'] = $qArr;
+        
 */
+
+        // var_dump($data['prospect']); die();
         //$this->output->enable_profiler(TRUE);
         $this->load->view('tsr/header', $data);
-        if($id_user == '1420'){
-            // die($id_user);
-            $this->load->view('tsr/main_xcop', $data);
-            // $this->load->view('tsr/main', $data);
-        }else{
-            $this->load->view('tsr/main', $data);
-        }
+        $this->load->view('tsr/main', $data); 
         $this->load->view('tsr/footer', $data);
         $this->load->view('flashmessage');
     }
@@ -1673,7 +1660,7 @@ class Tsr extends Controller
         $this->load->model('callsession_model');
         $this->callsession_model->clearCallsession();
 
-        redirect('tsr/main');
+        redirect('tsr/main'); 
         exit;
     }
 
@@ -4415,7 +4402,7 @@ class Tsr extends Controller
         echo site_url() . 'tsr/main/' . $id_campaign;
         exit;
     }
-
+ 
     public function get_option_callcode($parent_id = "", $id_prospect = "", $id_product = "", $id_calltrack, $no_contacted = "", $multioffers = '0', $multioffcard = "", $multiidx = "")
     {
         // die($multioffers);
@@ -4687,11 +4674,11 @@ class Tsr extends Controller
                     } else if (strpos($data_campaign_name, 'TMRW') > 0) {
                         $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row1['status']}' AND `segment` LIKE 'COP TMRW%')");
                     } else if (strpos($data_campaign_name, 'COP') > 0) {
-                        // onmra:
-                        $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row1['status']}')  AND `segment` NOT LIKE 'COP TMRW%'" . ($row1['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row1[custom1]')" : ''));
+                        $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row1['status2']}')  AND `segment` NOT LIKE 'COP TMRW%'" . ($row1['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row1[custom1]')" : ''));
                     } else {
-                        $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row1['status']}' AND segment!='{$row1['status']}') AND `segment` NOT LIKE 'COP TMRW%'" . ($row1['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row1[custom1]')" : ''));
-                    }
+                        // onmra:
+                        $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row1['status']}' AND segment!='{$row1['status']}') AND `segment` NOT LIKE 'COP TMRW%'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row2[custom1]')" : ''));
+                    } 
                     $merge['list_bank'] = $this->product_model->get_bankname();
                     $this->load->model('cop_model');
                     $merge['refreshbag'] = $this->cop_model->get_datarefresh($row1['cif_no'], $row1['card_number_basic'], $row1['refreshcode']);
@@ -4703,6 +4690,7 @@ class Tsr extends Controller
                     $merge['max_tertanggung'] = $row1['max_tertanggung'];
                     $merge['cop_flexibleamount'] = $this->config_model->get_list_setup('id_call_setup="19"');
                     $this->load->view('tsr/agree_cop', $merge);
+                    
                 } else if ($id_product == 47 || $multioffers == 'SUP') { // Supplement
 
                     $this->load->model('misc/misc_model');
@@ -4746,6 +4734,7 @@ class Tsr extends Controller
                     $merge['max_tertanggung'] = $row1['max_tertanggung'];
                     $this->load->view('tsr/agree_atv', $merge);
                 } else if ($id_product == 50 || $multioffers == 'ACT') { // AKTIVASI BASIC
+                    die('haha');
                     $this->load->model('misc/misc_model');
                     $merge['miscModel'] = $this->misc_model;
                     $this->load->model('offer_model');
@@ -4913,10 +4902,10 @@ class Tsr extends Controller
                     $merge['submit1_url'] = site_url() . 'agree_57/submit_agree/' . $id_prospect . '/' . $id_product;
                     $this->load->model('cop_model');
                     $merge['refreshbag'] = $this->cop_model->get_datarefreshcpil($row1['cif_no'], $row1['card_number_basic'], $row1['refreshcode']);
-                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
+                    // $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
+                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail_cpil($id_prospect);
                     $merge['list_bank'] = $this->product_model->get_bankname();
-                    // $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status']}'");
-                    $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status']}'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'CPIL $row2[custom1]')" : ''));
+                    $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status']}'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'CPIL $row2[custom1]')" : '') );
                     $merge['id_product'] = $id_product;
                     $merge['no_contacted'] = $no_contacted;
                     $merge['id_calltrack'] = $id_calltrack;
@@ -4943,42 +4932,6 @@ class Tsr extends Controller
                     $merge['multiproduct'] = $row2['multiproduct'];
                     $merge['max_tertanggung'] = $row2['max_tertanggung'];
                     $this->load->view('tsr/agree_fpst', $merge);
-                } else if ($id_product == 61 || $multioffers == 'FOPUN') { // FlexiPay
-                    $this->load->model('transactionFp_model');
-                    $this->load->model('offer_model');
-                    $merge['submit1_url'] = site_url() . 'agree_62/submit_agree/' . $id_prospect . '/' . $id_product;
-                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
-                    $merge['productcode'] = $this->product_model->get_productcode('FP', "status='{$row2['status']}'");
-                    $merge['transactions'] = $this->transactionFp_model->get_transactionsun($merge['prospect_detail']['cif_no'], $data_campaign_id2, $id_prospect, $merge['prospect_detail']['uploadcode']);
-                    // $merge['transactions'] = $this->transactionFp_model->get_transactionsunbilled($merge['prospect_detail']['cif_no'], $data_campaign_id2, $id_prospect, $merge['prospect_detail']['uploadcode']);
-                    $merge['cardtype'] = $this->transactionFp_model->get_cardtype($merge['prospect_detail']['cif_no'], $data_campaign_id2);
-                    // $merge["trxidx"] = $this->offer_model->get_offertrx_byidx($merge['prospect_detail']['cif_no'], $data_campaign_id2, $merge['prospect_detail']['card_number_basic'], $id_prospect);
-                    $merge['id_product'] = $id_product;
-                    $merge['no_contacted'] = $no_contacted;
-                    $merge['id_calltrack'] = $id_calltrack;
-                    $merge['insert_id'] = "";
-                    $merge['multiproduct'] = $row2['multiproduct'];
-                    $merge['max_tertanggung'] = $row2['max_tertanggung'];
-                    $this->load->view('tsr/agree_fopun', $merge);
-                } else if ($id_product == 62 || $multioffers == 'PAY') { // Pay Anything
-                    $this->load->model('transactionFp_model');
-                    $this->load->model('cop_model');
-                    $merge['submit1_url'] = site_url() . 'agree_61/submit_agree/' . $id_prospect . '/' . $id_product;
-                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
-                    $merge['refreshbagfop'] = $this->cop_model->get_datarefreshfop($data["prospect"]['cif_no'], $data["prospect"]['card_number_basic'], $data["prospect"]['refreshcode']);
-                    // echo $this->db->last_query();
-                    // die();
-                    $merge['productcode'] = $this->product_model->get_productcode('FP', "status='{$row2['status']}'");
-                    $merge['transactions'] = $this->transactionFp_model->get_transactions($merge['prospect_detail']['cif_no'], $data_campaign_id2, $id_prospect, $merge['prospect_detail']['uploadcode']);
-                    $merge['cardtype'] = $this->transactionFp_model->get_cardtype($merge['prospect_detail']['cif_no'], $data_campaign_id2);
-
-                    $merge['id_product'] = $id_product;
-                    $merge['no_contacted'] = $no_contacted;
-                    $merge['id_calltrack'] = $id_calltrack;
-                    $merge['insert_id'] = "";
-                    $merge['multiproduct'] = $row2['multiproduct'];
-                    $merge['max_tertanggung'] = $row2['max_tertanggung'];
-                    $this->load->view('tsr/agree_pay', $merge);
                 } else {
                     die('ERR: Invalid Product');
                 }
@@ -5197,6 +5150,8 @@ class Tsr extends Controller
                     $this->load->model('activasi_model');
                     $merge['submit1_url'] = site_url() . 'agree_48/submit_agree/' . $id_prospect . '/' . $id_product;
                     $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
+                    // var_dump($merge['prospect_detail']);
+                    // die();
                     $merge['list_bank'] = $this->product_model->get_bankname();
                     $merge["offers"] = $this->offer_model->get_offer_byCardNum($merge['prospect_detail']['cif_no'], $data_campaign_id, $merge['prospect_detail']['card_number_basic'], $id_prospect);
                     $merge['cardnumber'] = $this->activasi_model->get_activasi_byCardNum($merge['prospect_detail']['cif_no'], $data_campaign_id, $merge['prospect_detail']['card_number_basic'], $id_prospect);
@@ -5263,6 +5218,7 @@ class Tsr extends Controller
                     $merge['max_tertanggung'] = $row2['max_tertanggung'];
                     $this->load->view('tsr/agree_fp', $merge);
                 } else if ($multioffers == 'COP') { // Cash On Phone
+
                     $this->load->model('offer_model');
                     $merge['submit1_url'] = site_url() . 'agree_46/submit_agree/' . $id_prospect . '/' . $id_product;
                     $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
@@ -5285,9 +5241,9 @@ class Tsr extends Controller
                         } else if (strpos($data_campaign_name2, 'DAP') > 0) {
                             $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='DAP')");
                         } else if (strpos($data_campaign_name2, 'TMRW') > 0) {
-                            $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}' AND `segment` LIKE 'COP TMRW%')");
+                            $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status2']}' AND `segment` LIKE 'COP TMRW%')");
                         } else {
-                            $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}' AND segment!='{$row2['status']}') AND `segment` NOT LIKE 'COP TMRW%'");
+                            $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status2']}' AND segment!='{$row2['status2']}') AND `segment` NOT LIKE 'COP TMRW%'");
                         }
                     } else {
                         if (strpos($data_campaign_name2, 'NTK') > 0) {
@@ -5296,8 +5252,9 @@ class Tsr extends Controller
                             $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='DAP')");
                         } else if (strpos($data_campaign_name2, 'TMRW') > 0) {
                             $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}' AND `segment` LIKE 'COP TMRW%')");
-                        } else if (strpos($data_campaign_name2, 'COP') > 0) {
-                            $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}')  AND `segment` NOT LIKE 'COP TMRW%'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row2[custom1]')" : ''));
+                        // } else if (strpos($data_campaign_name2, 'COP') > 0) {
+                        //     // die('masuk sini COP ccc'); ini status mra: COP dari nama campaign
+                        //     $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}')  AND `segment` NOT LIKE 'COP TMRW%'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row2[custom1]')" : ''));
                         } else {
                             $merge['productcode'] = $this->product_model->get_productcode('COP', "(status='{$row2['status']}' AND segment!='{$row2['status']}') AND `segment` NOT LIKE 'COP TMRW%'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'COP $row2[custom1]')" : ''));
                         }
@@ -5305,8 +5262,10 @@ class Tsr extends Controller
 
                     $merge['list_bank'] = $this->product_model->get_bankname();
                     $this->load->model('cop_model');
+
                     $merge['refreshbag'] = $this->cop_model->get_datarefresh($row2['cif_no'], $row2['card_number_basic'], $row2['refreshcode']);
                     $merge["xsellidx"] = $this->offer_model->get_offer_byidx($merge['prospect_detail']['cif_no'], $data_campaign_id2, $merge['prospect_detail']['card_number_basic'], $id_prospect);
+                    // var_dump($data_campaign_id2); die();
                     $merge['id_product'] = $id_product;
                     $merge['no_contacted'] = $no_contacted;
                     $merge['id_calltrack'] = $id_calltrack;
@@ -5315,29 +5274,36 @@ class Tsr extends Controller
                     $merge['multioffers'] = $multioffers;
                     $merge['multiproduct'] = $multioffers;
                     $merge['max_tertanggung'] = $row2['max_tertanggung'];
-                    $merge['cop_flexibleamount'] = $this->config_model->get_list_setup('id_call_setup="19"');
-                    $this->load->view('tsr/agree_cop', $merge);
+                    $merge['cop_flexibleamount'] = $this->config_model->get_list_setup('id_call_setup="19"'); 
+                    $this->load->view('tsr/agree_cop_dev', $merge);
+                    // $this->load->view('tsr/agree_cop', $merge);
                 } else if ($multioffers == 'CPIL') { // Cash Plus
-
+                    // die('asd');
+                    // die('masuk sini CPIL'.$row2['status']); 
                     $this->load->model('misc/misc_model');
                     $this->load->model('offer_model');
                     $merge['miscModel'] = $this->misc_model;
                     //$id_prospect = $this->uri->segment(4);
                     $merge['submit1_url'] = site_url() . 'agree_57/submit_agree/' . $id_prospect . '/' . $id_product;
                     $this->load->model('cop_model');
-                    $merge['refreshbag'] = $this->cop_model->get_datarefreshcpil($row1['cif_no'], $row1['card_number_basic'], $row1['refreshcode']);
-                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
+                    $merge['refreshbag'] = $this->cop_model->get_datarefreshcpil($row1['cif_no'], $row1['card_number'], $row1['refreshcodecpil']);
+                    // $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail($id_prospect);
+                    $merge['prospect_detail'] = $this->prospect_model->get_prospectdetail_cpil($id_prospect);
                     $merge['list_bank'] = $this->product_model->get_bankname();
                     // $merge['productcode'] = $this->product_model->get_productcode('CPIL');
-                    // $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status']}'");
-                    // $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status']}'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'CPIL $row2[custom1]')" : ''));
+                    // debugmra:
+                    // var_dump(($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = '$row2[custom1]')" : 'ga ada bos')); die();
+                    // die($row2['status2']);
                     $merge['productcode'] = $this->product_model->get_productcode('CPIL', "status='{$row2['status2']}'" . ($row2['custom1'] ? " OR (fg_can_free_rate = 'Y' AND msc = 'CPIL $row2[custom1]')" : ''));
+                    // var_dump($merge['productcode']);
+                    // var_dump($this); 
+                    // die();
                     $merge["xsellidx"] = $this->offer_model->get_offer_byidx($merge['prospect_detail']['cif_no'], $data_campaign_id, $merge['prospect_detail']['card_number_basic'], $id_prospect);
                     $merge['id_product'] = $id_product;
                     $merge['no_contacted'] = $no_contacted;
                     $merge['id_calltrack'] = $id_calltrack;
                     $merge['insert_id'] = "";
-                    $merge['multioffers'] = $multioffers;
+                    $merge['multioffers'] = $multioffers; 
                     $merge['multiproduct'] = $multioffers;
                     $merge['multiidx'] = $multiidx;
                     $merge['max_tertanggung'] = $row2['max_tertanggung'];
