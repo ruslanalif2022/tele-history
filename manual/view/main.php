@@ -1001,17 +1001,19 @@ function hide_5digit_phone($val)
                   <td>:</td>
                   <td><?php echo 'CASE' . str_pad($prospect['id_prospect'], 8, 0, STR_PAD_LEFT) ?> / <?= $prospect['cnum']; ?> </td>
                 </tr>
+                <?php if ($prospect['campaign_product']  != 62) { ?>
                 <tr>
                   <td width="125">Campaign</td>
                   <td>:</td>
                   <td><?php echo $prospect['name']; ?></td>
                 </tr>
+                <?php } ?>
                 <!-- BUG:         <tr>
          <td width="125">Timezone</td>  
          <td>:</td>
          <td><?php echo $prospect['timezone'] == '' ? 'No Data' : $prospect['timezone']; ?></td>
         </tr> -->
-                <?php if ($prospect['campaign_product'] != '39') { ?>
+                <?php if ($prospect['campaign_product'] != '39' || $prospect['campaign_product']  != 62) { ?>
                   <tr>
                     <td width="125">Product</td>
                     <td>:</td>
@@ -1040,12 +1042,70 @@ function hide_5digit_phone($val)
                   </td>
                 </tr>
 
-
+                <?php if ($prospect['campaign_product'] != '62') { ?>
+                  
                 <tr>
                   <td width="125">Nama</td>
                   <td>:</td>
                   <td><strong style="font-size: 1.3em;"><?php echo $prospect['fullname'] ?> <?= $prospect['is_priority'] == '1' ? '<font class="blink_me" color="CORAL" title="No callblocking rule to this account">(PRIORITIZE CUSTOMER)</font>' : ''; ?></strong></td>
                 </tr>
+                <?php } ?>
+
+                <?php if ($prospect['campaign_product'] == '62') { ?>
+                  <tr>
+                    <td width="125">Nama Nasabah</td>
+                    <td>:</td>
+                    <td><strong style="font-size: 1.3em;"><?php echo $prospect['fullname'] ?> <?= $prospect['is_priority'] == '1' ? '<font class="blink_me" color="CORAL" title="No callblocking rule to this account">(PRIORITIZE CUSTOMER)</font>' : ''; ?></strong></td>
+                  </tr>
+
+                  <tr class="hide">
+                    <td width="125">Nama Penerima</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['maiden_name'] ?> </p>
+                    </td>
+                  </tr>
+
+                  <tr class="hide">
+                    <td width="125">Nomor Akun Penerima</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['account_number'] ?> </p>
+                    </td>
+                  </tr>
+
+                  <tr class="hide">
+                    <td width="125">Bank Penerima</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['social_number'] ?> </p>
+                    </td>
+                  </tr>
+
+                  <tr class="hide">
+                    <td width="125">Permintaan Jumlah Transfer</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;">Rp. <?php echo number_format($prospect['max_loan'], 0) ?> </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td width="125">50% Credit Limit</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;">Rp. <?php echo number_format($prospect['loan1'], 0) ?> </p>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td width="125">Drop base</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;"><?php echo ($prospect['createdate']) ?> </p>
+                    </td>
+                  </tr>
+                <?php } ?>
                 <!--        
         <tr>
          <td width="125">Umur</td>
@@ -1071,7 +1131,7 @@ function hide_5digit_phone($val)
         </tr> 
 -->
 
-
+              <?php if ($prospect['campaign_product'] != '62') : ?>
                 <tr class="<?= empty($prospect['gender']) ? 'hide' : ''; ?>">
                   <td>Gender</td>
                   <td>:</td>
@@ -1119,7 +1179,7 @@ function hide_5digit_phone($val)
                     ?>
                   </td>
                 </tr>
-
+                <?php endif; ?>
                 <?php if ($prospect['campaign_product'] == '59') : ?>
                   <tr class="<?= empty($prospect['available_credit']) ? 'hide' : ''; ?>">
                     <td><strong>Available Limit</strong></td>
@@ -1171,13 +1231,42 @@ function hide_5digit_phone($val)
                       </td>
                     </tr>
                 <?php } ?>
-                <?php if ($prospect['campaign_product'] != '57' && $prospect['campaign_type'] != '8' && $prospect['campaign_product'] != '59') : ?>
+                <?php if ($prospect['campaign_product'] != '57' && $prospect['campaign_type'] != '8' && $prospect['campaign_product'] != '59' && $prospect['campaign_product'] != '61' && $prospect['campaign_product'] != '62') : ?>
                   <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
                     <td>Data Info</td>
                     <td>:</td>
                     <td>
                       <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p>
                     </td>
+                  </tr>
+                <?php endif; ?>
+
+                <?php if ($prospect['campaign_product'] == '61') : ?>
+                  <tr class="<?= empty($prospect['plafon24']) ? 'hide' : ''; ?>">
+                    <td>Last Taken</td>
+                    <td>:</td>
+                    <td>
+                      <strong style="font-size: 1.3em;"><?php echo $prospect['plafon24'] ?></strong>
+                      <!-- <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p> -->
+                    </td>
+                  </tr>
+                  <tr class="<?= empty($prospect['datainfo']) ? 'hide' : ''; ?>">
+                    <td>Data Info</td>
+                    <td>:</td>
+                    <td>
+                      <p style="width:500px; word-wrap: break-word;"><?php echo $prospect['datainfo'] ?></p>
+                    </td>
+                  </tr>
+
+                  <tr class="<?= empty($prospect['status']) ? 'hide' : ''; ?>">
+                    <td>Status</td>
+                    <td>:</td>
+                    <td><?php echo $prospect['status'] ?></td>
+                  </tr>
+                  <tr class="<?= empty($prospect['cycle']) ? 'hide' : ''; ?>">
+                    <td>Cycle</td>
+                    <td>:</td>
+                    <td><?php echo $prospect['cycle']; ?></td>
                   </tr>
                 <?php endif; ?>
 
@@ -2584,6 +2673,115 @@ function hide_5digit_phone($val)
     <div id="installment_simulator">
       <fieldset>
         <legend>Installment Simulator FOP Statemnt</legend>
+        <!--<p> <input type="button" value="close" class="btn-uncontacted" onclick="zipcodelist('hide')" /></p>-->
+        <table style="overflow: auto; width: 100%">
+          <tr>
+            <td>Nominal</td>
+            <td>:</td>
+            <td style="width:5px">Rp.</td>
+            <td>
+              <div style="font-size: 14px;">
+                <input type="number" min="500000" step="500000" id="simulator_plafon" name="simulator_plafon" value="500000" style="width:150px; font-size: 14px;" />
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td colspan="2" style="">
+              <input type="button" style="width: 100px; margin-left: 28px;" class="btn-contacted" id="" value="Hitung Cicilan" onclick="simulasiPinjaman1()">
+              <input type="button" value="close" class="btn-uncontacted" onclick="installment_simulator('hide')" />
+            </td>
+          </tr>
+        </table>
+      </fieldset>
+      <fieldset>
+        <legend>Installment Tree</legend>
+        <table style="overflow: auto; width: 100%">
+          <tr>
+            <td></td>
+            <td colspan="2">
+              <div id="result_simulator" style="font-size: 13px;">
+                <?php $z = 0;
+                foreach ($list_productcode as $prodcode) { ?>
+                  <label> Flexipay / <?= $prodcode['bunga'] ?>% / <?= $prodcode['tenor'] ?> Bulan / Bunga Efektif <?= $prodcode['bunga_efektif'] * 100 ?>% / Cicilan: <span id="angsuranCal_<?= $z; ?>"></span> / EBR: <span id="angsuranEbr_<?= $z; ?>"></span> </label></br><br>
+                  <input type="hidden" id="bunga_<?= $z; ?>" value="<?= $prodcode['bunga']; ?>">
+                  <input type="hidden" id="tenor_<?= $z; ?>" value="<?= $prodcode['tenor']; ?>">
+                <?php $z++;
+                } ?>
+              </div>
+            </td>
+          </tr>
+        </table>
+        <br />
+      </fieldset>
+    </div>
+    <!-- Simulasi Personal Loan -->
+    <script type="text/javascript">
+      function fixInputCal() {
+        var input_pinjaman = $('#simulator_plafon').val();
+        var max_pinjaman = 100000000;
+        var fix_pinjaman;
+        fix_pinjaman = input_pinjaman.replace(/[^0-9]/g, '');
+        fix_pinjaman = parseInt(fix_pinjaman);
+
+        var min_pinjaman = 500000;
+
+        if (isNaN(fix_pinjaman)) {
+          new Boxy.alert('Mohon Nominal tidak diisi dengan huruf, simbol atau tanda baca apapun, termasuk koma (,) dan Titik (.)');
+          $('#ben_pinjamincome').val('0');
+        } else if (input_pinjaman < min_pinjaman) {
+          new Boxy.alert('Nominal terlalu kecil. Minimal : 500.000');
+          $('#simulator_plafon').val(min_pinjaman);
+        } else {
+          $('#simulator_plafon').val(fix_pinjaman);
+        }
+
+      }
+
+      function simulasiPinjaman1() {
+        fixInputCal();
+        var pinjaman = $('#simulator_plafon').val() * 1;
+
+        for (var i = 0; i < 5; i++) {
+          var bunga = $('#bunga_' + i).val() * 1;
+          var tenor = $('#tenor_' + i).val() * 1;
+          var cicilan_pokok = pinjaman / tenor;
+          var cicilan_bunga = pinjaman * (bunga / 100);
+          var jml_angsuran = Math.round(cicilan_pokok + cicilan_bunga);
+
+          // Script New
+          var cicilan_asli = pinjaman * (tenor + 1);
+          var cicilan_bung = cicilan_asli / 2;
+          var hasil = Math.round(cicilan_bung * (bunga / 100));
+
+          $('#angsuranCal_' + i).empty();
+          $('#angsuranCal_' + i).append(jml_angsuran);
+
+          $('#angsuranCal_' + i).priceFormat({
+            prefix: 'Rp.',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+
+          $('#angsuranEbr_' + i).empty();
+          $('#angsuranEbr_' + i).append(hasil);
+          $('#angsuranEbr_' + i).priceFormat({
+            prefix: 'Rp.',
+            thousandsSeparator: ',',
+            centsLimit: 0
+          });
+        }
+      }
+
+      $(document).ready(function() {
+        simulasiPinjaman1();
+      });
+    </script>
+  <?php elseif ($prospect['campaign_product'] == '61') : ?> 
+    <div id="installment_simulator">
+      <fieldset>
+        <legend>Installment Simulator FOP Unbilled</legend>
         <!--<p> <input type="button" value="close" class="btn-uncontacted" onclick="zipcodelist('hide')" /></p>-->
         <table style="overflow: auto; width: 100%">
           <tr>
