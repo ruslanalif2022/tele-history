@@ -106,6 +106,7 @@
 		hitungCicilan();
 		autoFormat();
 		checkPinjaman();
+		
 	});
 
 	$('.floatingRight').click(function() {
@@ -255,7 +256,8 @@
 		//$('#tujuan_pembiayaan').val(''); //reset productcode cache;
 
 		var xsel = $(this).val();
-		var pinjaman = $('#ben_pinjamincome').val() * 1;
+		// var pinjaman = $('#ben_pinjamincome').val() * 1;
+		var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
 		var juta = 1000000;
 		var adminfee = 0;
 		var campaign_name = '<?= $prospect_detail['name'] ?>';
@@ -270,10 +272,10 @@
 				var adminfee = 300000;
 			}
 		}
-
 		// onmra:
-		if ($('#apl_msc').val() == 'COP R-0') {
-			adminfee = parseInt(2 / 100 * $('#ben_pinjamincome').val());
+		if($('#apl_msc').val() == 'COP R-0'){
+			// adminfee = 2/100 * ($('#ben_pinjamincome').val()  * 1 );
+			adminfee = 2/100 * (parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1 );
 		}
 		$('#ben_materai').val(adminfee);
 		$('#ben_materai').priceFormat({
@@ -377,7 +379,8 @@
 		var limid = $('[name="ben_limiteditionopt"]:checked');
 		var tujuan = $('[name="ben_pinjamopt"]:checked').val();
 		var xsel = $('#apl_msc').val();
-		var pinjaman = $('#ben_pinjamincome').val() * 1;
+		// var pinjaman = $('#ben_pinjamincome').val() * 1;
+		var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
 		if (xsel != '') {
 			var url = "<?php echo site_url(); ?>ajax/tsr/get_mscdetail1/" + xsel + "/" + tujuan + "/";
 			var campaign = "<?= $prospect_detail['campaign_type']; ?>";
@@ -425,12 +428,12 @@
 		var batas_pinjaman = $('#pjm_maxloan').val() * 1;
 		var cardlimit = <?= @$prospect_detail['creditlimit']; ?> * 1;
 		var availcredit = $('#available_credit').val() * 1;
-		var pinjaman = $('#ben_pinjamincome').val() * 1;
+		// var pinjaman = $('#ben_pinjamincome').val() * 1;
+		var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
 		var cop_flexibleamount = "<?= $cop_flexibleamount[0]['value'] ?>";
 
 		if (pinjaman > batas_pinjaman) {
 			pinjaman = batas_pinjaman;
-			Boxy.alert('Loan 1 Tidak boleh lebih dari batas pinjaman !!');
 		}
 
 		// Hitung Pencairan dana
@@ -490,18 +493,12 @@
 
 
 		if (cop_flexibleamount != "1") {
-			loan1_step = $('#pjm_loan1').val();
-			loan2_step = $('#pjm_loan2').val();
+			// loan1_step = $('#pjm_loan1').val();
+			// loan2_step = $('#pjm_loan2').val();
+			loan1_step = parseInt($('#pjm_loan1').val().replace(/,/g, ""), 10);
+			loan2_step = parseInt($('#pjm_loan2').val().replace(/,/g, ""), 10);
 			loan3_step = $('#pjm_loan3').val();
 		}
-
-		var max = "<?php echo $prospect_detail['max_loan'] ?>"
-
-		if (pinjaman > max) {
-			$("#pjm_loan1").val(max);
-			Boxy.alert('Tidak Boleh lebih dari batas pinjaman !!');
-		}
-
 		$('#loan1_test').html("RAW:" + loan1_raw + ' Step:' + loan1_step);
 		$('#loan2_test').html("RAW:" + loan2_raw + ' Step:' + loan2_step);
 		$('#loan3_test').html("RAW:" + loan3_raw + ' Step:' + loan3_step);
@@ -523,7 +520,11 @@
 		});
 		$('#loan1_terbilang').html(terbilang(loan1_step));
 		$('#pjm_loan1').val(loan1_step);
-
+		$('#pjm_loan1').priceFormat({
+			prefix: '',
+			thousandsSeparator: ',',
+			centsLimit: 0
+		});
 		$('#loan2_read').html(loan2_step);
 		$('#loan2_read').priceFormat({
 			prefix: '',
@@ -532,7 +533,11 @@
 		});
 		$('#loan2_terbilang').html(terbilang(loan2_step));
 		$('#pjm_loan2').val(loan2_step);
-
+		$('#pjm_loan2').priceFormat({
+			prefix: '',
+			thousandsSeparator: ',',
+			centsLimit: 0
+		});
 		$('#loan3_read').html(loan3_step);
 		$('#loan3_read').priceFormat({
 			prefix: '',
@@ -542,11 +547,19 @@
 		$('#loan3_terbilang').html(terbilang(loan3_step));
 		$('#pjm_loan3').val(loan3_step);
 
+		console.log(loan1_step);
+		console.log(loan2_step);
+		console.log(loan3_step);
 		var total_pencairan = (loan1_step + loan2_step + loan3_step) * 1;
 
 		pinjaman = pembulatan(pinjaman, 100000);
+		// alert(pinjaman);
 		$('#ben_pinjamincome').val(pinjaman);
-
+		$('#ben_pinjamincome').priceFormat({
+			prefix: '',
+			thousandsSeparator: ',',
+			centsLimit: 0
+		});
 		var bunga = parseFloat($('#ben_bunga').val()) * 1;
 		//alert(bunga);
 		//return;
@@ -611,11 +624,11 @@
 		}
 
 		$('#ben_pinjamread').html($('#ben_pinjamincome').val());
-		$('#ben_pinjamread').priceFormat({
-			prefix: 'Rp.',
-			thousandsSeparator: ',',
-			centsLimit: 0
-		});
+		// $('#ben_pinjamread').priceFormat({
+		// 	prefix: 'Rp.',
+		// 	thousandsSeparator: ',',
+		// 	centsLimit: 0
+		// });
 
 		$('#ben_osread').html($('#ben_os').val());
 		$('#ben_osread').priceFormat({
@@ -628,17 +641,21 @@
 	}
 
 	function checkPinjaman() {
-		var pinjaman = $('#ben_pinjamincome').val() * 1;
-		var loan1 = $('#pjm_loan1').val() * 1;
-		var loan2 = $('#pjm_loan2').val() * 1;
+		// var pinjaman = $('#ben_pinjamincome').val() * 1;
+		var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
+		// var loan1 = $('#pjm_loan1').val() * 1;
+		// var loan2 = $('#pjm_loan2').val() * 1;
+		var loan1 = parseInt($('#pjm_loan1').val().replace(/,/g, ""), 10) * 1;
+		var loan2 = parseInt($('#pjm_loan2').val().replace(/,/g, ""), 10) * 1;
 		var loan3 = $('#pjm_loan3').val() * 1;
 		var total_pencairan = loan1 + loan2 + loan3;
 		if (pinjaman > total_pencairan) {
 			pinjaman = total_pencairan;
 		}
+		
 		// onmra:
-		if ($('#apl_msc').val() == 'COP R-0') {
-			$('#ben_materai').val(parseInt(2 / 100 * total_pencairan));
+		if($('#apl_msc').val() == 'COP R-0'){
+			$('#ben_materai').val(2/100 * total_pencairan);
 			$('#ben_materai').priceFormat({
 				prefix: '',
 				thousandsSeparator: ',',
@@ -674,7 +691,8 @@
 	function updateSimulasi() {
 		var tenoropt = $("input[id^='ben_limiteditionopt']");
 		$.each(tenoropt, function(i, l) {
-			var pinjaman = $('#ben_pinjamincome').val() * 1;
+			// var pinjaman = $('#ben_pinjamincome').val() * 1;
+			var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
 			var tenor = (l.value) * 1;
 			var bunga = ($(l).attr('data-bunga')) * 1
 			var cicilan_pokok = pinjaman / tenor;
@@ -841,7 +859,8 @@
 
 	function updateMSC(productcode) {
 		var xsel = $('#apl_msc').val();
-		var pinjaman = $('#ben_pinjamincome').val() * 1;
+		// var pinjaman = $('#ben_pinjamincome').val() * 1;
+		var pinjaman = parseInt($('#ben_pinjamincome').val().replace(/,/g, ""), 10) * 1;
 		if (xsel != '') {
 			var url = "<?php echo site_url(); ?>ajax/tsr/get_mscdetail/" + xsel + "/";
 
@@ -861,12 +880,12 @@
 								centsLimit: 0
 							});
 							$('input[data-productcode="' + productcode + '"]').attr('checked', 'TRUE');
-							$('#ben_pinjamread').html($('#ben_pinjamincome').val());
-							$('#ben_pinjamread').priceFormat({
-								prefix: 'Rp.',
-								thousandsSeparator: ',',
-								centsLimit: 0
-							});
+							$('#ben_pinjamread').html( $('#ben_pinjamincome').val());
+							// $('#ben_pinjamread').priceFormat({
+							// 	prefix: 'Rp.',
+							// 	thousandsSeparator: ',',
+							// 	centsLimit: 0
+							// });
 							//hitungCicilan();
 						});
 					} else {
@@ -1050,7 +1069,7 @@
 				<td>:</td>
 				<td><input type="text" id="apl_productcode" name="apl_productcode" value="" readonly /></td>
 			</tr>
-
+			
 			<tr class="a">
 				<td><label>Agree Notes</label></td>
 				<td>:</td>
@@ -1780,11 +1799,11 @@
 				<td>: </td>
 				<td>
 					<?php if (empty($refreshbag)) { ?>
-						<input type="number" id="ben_pinjamincome" name="ben_pinjamincome" value="" placeholder="" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="ben_pinjamincome" name="ben_pinjamincome" value="" placeholder="" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> <!--- script baru-->
 						<!-- <input type="number" id="ben_pinjamincome" name="ben_pinjamincome" value="<?= $prospect_detail['max_loan']; ?>" placeholder="<?php echo $prospect_detail['max_loan']; ?>" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> -->
 						<span style="color:#C58A32;font-weight:bold;">Total Pinjaman</span> : <span id="ben_pinjamread"></span> &nbsp/&nbsp <span style="color:#E131EC;font-weight:bold;">Dana Yang diterima</span> : <span id="ben_totalpenerimaandana" style="color:darkgreen">0</span>
 					<?php } else { ?>
-						<input type="number" id="ben_pinjamincome" name="ben_pinjamincome" value="" placeholder="" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="ben_pinjamincome" name="ben_pinjamincome" value="" placeholder="" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> <!--- script baru-->
 						<!-- <input type="number" id="ben_pinjamincome" name="ben_pinjamincome" value="<?= $refreshbag['max_loan']; ?>" placeholder="<?php echo $refreshbag['max_loan']; ?>" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? 'readonly' : ''; ?> /> -->
 						<span style="color:#C58A32;font-weight:bold;">Total Pinjaman</span> : <span id="ben_pinjamread"></span> &nbsp/&nbsp <span style="color:#E131EC;font-weight:bold;">Dana Yang diterima</span> : <span id="ben_totalpenerimaandana" style="color:darkgreen">0</span>
 					<?php } ?>
@@ -1810,12 +1829,12 @@
 				<td>:</td>
 				<td>
 					<?php if (empty($refreshbag)) { ?>
-						<input type="number" id="pjm_loan1" name="pjm_loan1" value="<?= $prospect_detail['loan1']; ?>" placeholder="<?php echo $prospect_detail['loan1']; ?>" step="100000" min="1000000" max="<?php echo $prospect_detail['max_loan'] ?>" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="pjm_loan1" name="pjm_loan1" value="<?= $prospect_detail['loan1']; ?>" placeholder="<?php echo $prospect_detail['loan1']; ?>" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
 						<span id="loan1_read"><?php echo 'Rp. ' . price_format($prospect_detail['loan1']); ?></span>&nbsp;
 						<span id="loan1_terbilang" data-format="terbilang"><?= $prospect_detail['loan1']; ?></span>
 						<!-- <input type="hidden" id="pjm_loan1" name="pjm_loan1" value="<?= $prospect_detail['loan1']; ?>" /> -->
 					<?php } else { ?>
-						<input type="number" id="pjm_loan1" name="pjm_loan1" value="<?= $refreshbag['loan1']; ?>" placeholder="<?php echo $refreshbag['loan1']; ?>" step="100000" min="1000000" max="<?php echo $refreshbag['max_loan'] ?>" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="pjm_loan1" name="pjm_loan1" value="<?= $refreshbag['loan1']; ?>" placeholder="<?php echo $refreshbag['loan1']; ?>" step="100000" min="1000000" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
 						<span id="loan1_read"><?php echo 'Rp. ' . price_format($refreshbag['loan1']); ?></span>&nbsp;
 						<span id="loan1_terbilang" data-format="terbilang"><?= $refreshbag['loan1']; ?></span>
 						<!-- <input type="hidden" id="pjm_loan1" name="pjm_loan1" value="<?= $refreshbag['loan1']; ?>" /> -->
@@ -1830,12 +1849,12 @@
 				<td>:</td>
 				<td>
 					<?php if (empty($refreshbag)) { ?>
-						<input type="number" id="pjm_loan2" name="pjm_loan2" value="<?= $prospect_detail['loan2']; ?>" placeholder="<?php echo $prospect_detail['loan2']; ?>" step="100000" min="0" max="<?php echo $prospect_detail['max_loan'] ?>" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="pjm_loan2" name="pjm_loan2" value="<?= $prospect_detail['loan2']; ?>" placeholder="<?php echo $prospect_detail['loan2']; ?>" step="100000" min="0" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
 						<span id="loan2_read"><?php echo 'Rp. ' . price_format($prospect_detail['loan2']); ?></span>&nbsp;
 						<span id="loan2_terbilang" data-format="terbilang"><?= $prospect_detail['loan2']; ?></span>
 						<!-- <input type="hidden" id="pjm_loan2" name="pjm_loan2" value="<?= $prospect_detail['loan2']; ?>" /> -->
 					<?php } else { ?>
-						<input type="number" id="pjm_loan2" name="pjm_loan2" value="<?= $refreshbag['loan2']; ?>" placeholder="<?php echo $refreshbag['loan2']; ?>" step="100000" min="0" max="<?php echo $refreshbag['max_loan'] ?>" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
+						<input type="text" id="pjm_loan2" name="pjm_loan2" value="<?= $refreshbag['loan2']; ?>" placeholder="<?php echo $refreshbag['loan2']; ?>" step="100000" min="0" onchange="hitungCicilan()" onblur="checkPinjaman()" <?= $cop_flexibleamount[0]['value'] != "1" ? '' : ''; ?> /> <!--- script baru-->
 						<span id="loan2_read"><?php echo 'Rp. ' . price_format($refreshbag['loan2']); ?></span>&nbsp;
 						<span id="loan2_terbilang" data-format="terbilang"><?= $refreshbag['loan2']; ?></span>
 						<!-- <input type="hidden" id="pjm_loan2" name="pjm_loan2" value="<?= $refreshbag['loan2']; ?>" /> -->
@@ -2296,7 +2315,7 @@
 			</tr>
 
 			<tr class="a">
-				<td><label>Agree Notes2</label></td>
+				<td><label>Agree Notes</label></td>
 				<td>:</td>
 				<td><textarea id="agree_notes2" name="agree_notes2" maxlength="300"></textarea></td>
 			</tr>
