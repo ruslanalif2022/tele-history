@@ -45,7 +45,7 @@ class Tsr_v2 extends Controller
     {
         //$this->output->enable_profiler(TRUE);
         // die('haha');
-        // test publish
+        // Balik Lagi
         $data["txt_title"] = "Tele Dashboard";
         $post = @$_POST["post"];
 
